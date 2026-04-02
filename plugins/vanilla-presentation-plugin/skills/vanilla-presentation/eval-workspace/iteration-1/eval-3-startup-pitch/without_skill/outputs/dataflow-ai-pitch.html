@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DataFlow AI - Investor Pitch</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #0a0a0f;
+    color: #fff;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+  }
+
+  .presentation {
+    width: 100%;
+    height: 100%;
+    position: relative;
+  }
+
+  .slide {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 60px;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: all;
+  }
+
+  .slide.exit {
+    opacity: 0;
+    transform: translateX(-60px);
+  }
+
+  /* ── Navigation ── */
+  .nav {
+    position: fixed;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    z-index: 100;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 50px;
+    padding: 10px 24px;
+  }
+
+  .nav button {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    font-size: 18px;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+    padding: 4px 8px;
+  }
+
+  .nav button:hover { opacity: 1; }
+  .nav button:disabled { opacity: 0.2; cursor: default; }
+
+  .slide-counter {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    min-width: 48px;
+    text-align: center;
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.3);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+  }
+
+  .dot.active {
+    background: #6c63ff;
+    transform: scale(1.4);
+  }
+
+  /* ── Slide 1: Title ── */
+  .slide-title {
+    background: radial-gradient(ellipse at 60% 40%, #1a0a4f 0%, #0a0a1a 60%);
+  }
+
+  .title-badge {
+    background: rgba(108,99,255,0.2);
+    border: 1px solid rgba(108,99,255,0.5);
+    color: #a09aff;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 6px 18px;
+    border-radius: 20px;
+    margin-bottom: 28px;
+  }
+
+  .company-name {
+    font-size: clamp(52px, 7vw, 90px);
+    font-weight: 800;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 20px;
+  }
+
+  .company-name span {
+    background: linear-gradient(135deg, #6c63ff, #48c6ef);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .tagline {
+    font-size: clamp(16px, 2vw, 22px);
+    color: rgba(255,255,255,0.6);
+    max-width: 560px;
+    text-align: center;
+    line-height: 1.6;
+    margin-bottom: 48px;
+  }
+
+  .title-meta {
+    display: flex;
+    gap: 40px;
+  }
+
+  .meta-item {
+    text-align: center;
+  }
+
+  .meta-value {
+    font-size: 24px;
+    font-weight: 700;
+    color: #6c63ff;
+  }
+
+  .meta-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(108,99,255,0.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(108,99,255,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    pointer-events: none;
+  }
+
+  /* ── Slide headers ── */
+  .slide-header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .slide-number {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #6c63ff;
+    margin-bottom: 12px;
+  }
+
+  .slide-heading {
+    font-size: clamp(32px, 4vw, 52px);
+    font-weight: 800;
+    letter-spacing: -1px;
+    line-height: 1.1;
+  }
+
+  .slide-subheading {
+    font-size: 16px;
+    color: rgba(255,255,255,0.5);
+    margin-top: 10px;
+  }
+
+  /* ── Slide 2: Problem ── */
+  .slide-problem {
+    background: radial-gradient(ellipse at 30% 60%, #1a0a0a 0%, #0a0a1a 60%);
+  }
+
+  .problem-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 960px;
+    width: 100%;
+  }
+
+  .problem-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,80,80,0.2);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+
+  .problem-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255,80,80,0.5);
+  }
+
+  .problem-icon {
+    font-size: 36px;
+    margin-bottom: 16px;
+  }
+
+  .problem-title {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+
+  .problem-desc {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.6;
+  }
+
+  .problem-stat {
+    font-size: 28px;
+    font-weight: 800;
+    color: #ff5050;
+    margin-bottom: 6px;
+  }
+
+  /* ── Slide 3: Solution ── */
+  .slide-solution {
+    background: radial-gradient(ellipse at 70% 30%, #0a1a0a 0%, #0a0a1a 60%);
+  }
+
+  .solution-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 48px;
+    max-width: 960px;
+    width: 100%;
+    align-items: center;
+  }
+
+  .solution-visual {
+    background: rgba(108,99,255,0.08);
+    border: 1px solid rgba(108,99,255,0.2);
+    border-radius: 20px;
+    padding: 36px;
+    text-align: center;
+  }
+
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .pipeline-step {
+    background: rgba(255,255,255,0.06);
+    border-radius: 10px;
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 14px;
+  }
+
+  .pipeline-step .step-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6c63ff, #48c6ef);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .pipeline-arrow {
+    text-align: center;
+    color: rgba(108,99,255,0.6);
+    font-size: 18px;
+  }
+
+  .solution-points {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .solution-point {
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .point-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6c63ff, #48c6ef);
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+
+  .point-text strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+
+  .point-text span {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    line-height: 1.5;
+  }
+
+  /* ── Slide 4: Tech Stack ── */
+  .slide-tech {
+    background: radial-gradient(ellipse at 50% 50%, #0a0a2a 0%, #0a0a1a 70%);
+  }
+
+  .tech-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    max-width: 900px;
+    width: 100%;
+  }
+
+  .tech-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 24px 16px;
+    text-align: center;
+    transition: transform 0.3s, border-color 0.3s, background 0.3s;
+    cursor: default;
+  }
+
+  .tech-card:hover {
+    transform: translateY(-6px);
+    border-color: rgba(108,99,255,0.4);
+    background: rgba(108,99,255,0.08);
+  }
+
+  .tech-icon {
+    font-size: 32px;
+    margin-bottom: 12px;
+  }
+
+  .tech-name {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .tech-role {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ── Slide 5: Market ── */
+  .slide-market {
+    background: radial-gradient(ellipse at 40% 60%, #001a2a 0%, #0a0a1a 60%);
+  }
+
+  .market-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 880px;
+    width: 100%;
+    margin-bottom: 32px;
+  }
+
+  .market-card {
+    background: rgba(255,255,255,0.04);
+    border-radius: 20px;
+    padding: 32px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .market-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+
+  .market-card:nth-child(1)::before { background: linear-gradient(90deg, #6c63ff, #9b93ff); }
+  .market-card:nth-child(2)::before { background: linear-gradient(90deg, #48c6ef, #6ffbdf); }
+  .market-card:nth-child(3)::before { background: linear-gradient(90deg, #f093fb, #f5576c); }
+
+  .market-label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.4);
+    margin-bottom: 16px;
+  }
+
+  .market-value {
+    font-size: clamp(36px, 5vw, 56px);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .market-card:nth-child(1) .market-value { color: #9b93ff; }
+  .market-card:nth-child(2) .market-value { color: #6ffbdf; }
+  .market-card:nth-child(3) .market-value { color: #f5576c; }
+
+  .market-unit {
+    font-size: 13px;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 12px;
+  }
+
+  .market-growth {
+    display: inline-block;
+    background: rgba(108,255,150,0.1);
+    border: 1px solid rgba(108,255,150,0.3);
+    color: #6eff96;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: 20px;
+  }
+
+  .market-note {
+    font-size: 13px;
+    color: rgba(255,255,255,0.35);
+    text-align: center;
+  }
+
+  /* ── Slide 6: Team ── */
+  .slide-team {
+    background: radial-gradient(ellipse at 60% 40%, #0a1a2a 0%, #0a0a1a 60%);
+  }
+
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    max-width: 960px;
+    width: 100%;
+  }
+
+  .team-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 20px;
+    padding: 28px 20px;
+    text-align: center;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+
+  .team-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(108,99,255,0.3);
+  }
+
+  .avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+  }
+
+  .team-card:nth-child(1) .avatar { background: linear-gradient(135deg, #6c63ff, #9b93ff); }
+  .team-card:nth-child(2) .avatar { background: linear-gradient(135deg, #48c6ef, #6ffbdf); }
+  .team-card:nth-child(3) .avatar { background: linear-gradient(135deg, #f093fb, #c77dff); }
+  .team-card:nth-child(4) .avatar { background: linear-gradient(135deg, #f5576c, #ffc371); }
+
+  .member-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .member-title {
+    font-size: 12px;
+    color: #6c63ff;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .member-bio {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.5;
+  }
+
+  /* ── Slide 7: Traction ── */
+  .slide-traction {
+    background: radial-gradient(ellipse at 50% 30%, #0a1a0a 0%, #0a0a1a 60%);
+  }
+
+  .traction-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+    max-width: 860px;
+    width: 100%;
+  }
+
+  .traction-item {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: 16px;
+    padding: 28px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+    transition: transform 0.3s;
+  }
+
+  .traction-item:hover { transform: translateY(-3px); }
+
+  .traction-icon {
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .traction-value {
+    font-size: 32px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #6c63ff, #48c6ef);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .traction-label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .traction-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+  }
+
+  /* ── Slide 8: Closing ── */
+  .slide-closing {
+    background: radial-gradient(ellipse at 50% 50%, #1a0a4f 0%, #0a0a1a 60%);
+    text-align: center;
+  }
+
+  .closing-headline {
+    font-size: clamp(36px, 5vw, 64px);
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1.1;
+    margin-bottom: 24px;
+  }
+
+  .closing-headline span {
+    background: linear-gradient(135deg, #6c63ff, #48c6ef, #6ffbdf);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .closing-sub {
+    font-size: 18px;
+    color: rgba(255,255,255,0.55);
+    max-width: 560px;
+    line-height: 1.7;
+    margin-bottom: 48px;
+  }
+
+  .ask-box {
+    background: rgba(108,99,255,0.12);
+    border: 1px solid rgba(108,99,255,0.35);
+    border-radius: 20px;
+    padding: 36px 56px;
+    margin-bottom: 40px;
+  }
+
+  .ask-amount {
+    font-size: clamp(44px, 6vw, 72px);
+    font-weight: 900;
+    background: linear-gradient(135deg, #6c63ff, #48c6ef);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .ask-label {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .use-of-funds {
+    display: flex;
+    gap: 32px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .fund-item {
+    text-align: center;
+  }
+
+  .fund-pct {
+    font-size: 22px;
+    font-weight: 800;
+    color: #6c63ff;
+  }
+
+  .fund-label {
+    font-size: 12px;
+    color: rgba(255,255,255,0.4);
+    margin-top: 2px;
+  }
+
+  .contact-row {
+    display: flex;
+    gap: 28px;
+    justify-content: center;
+    margin-top: 32px;
+  }
+
+  .contact-item {
+    font-size: 14px;
+    color: rgba(255,255,255,0.5);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .contact-item strong { color: rgba(255,255,255,0.8); }
+
+  /* Keyboard hint */
+  .kb-hint {
+    position: fixed;
+    top: 24px;
+    right: 28px;
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<div class="presentation" id="presentation">
+
+  <!-- Slide 1: Title -->
+  <div class="slide slide-title active" data-index="0">
+    <div class="grid-bg"></div>
+    <div class="title-badge">Investor Pitch Deck · 2026</div>
+    <div class="company-name"><span>DataFlow AI</span></div>
+    <p class="tagline">기업 데이터를 실시간 인사이트로 전환하는<br>AI 기반 자동화 분석 플랫폼</p>
+    <div class="title-meta">
+      <div class="meta-item">
+        <div class="meta-value">Series A</div>
+        <div class="meta-label">투자 단계</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-value">50억</div>
+        <div class="meta-label">목표 투자금</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-value">2024</div>
+        <div class="meta-label">설립 연도</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 2: Problem -->
+  <div class="slide slide-problem" data-index="1">
+    <div class="slide-header">
+      <div class="slide-number">02 / 08 &nbsp;·&nbsp; Problem</div>
+      <div class="slide-heading">기업 데이터, 왜 활용되지 못할까?</div>
+      <div class="slide-subheading">데이터는 넘쳐나지만, 실질적 의사결정에 쓰이는 건 단 23%</div>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card">
+        <div class="problem-stat">73%</div>
+        <div class="problem-title">데이터 사일로</div>
+        <div class="problem-desc">부서 간 데이터가 분리되어 통합 분석이 불가능. 가치 있는 인사이트가 시스템 안에 갇혀 있음.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-stat">6~8주</div>
+        <div class="problem-title">분석 리드타임</div>
+        <div class="problem-desc">데이터 엔지니어링·BI 개발에 수 주가 소요. 시장 변화 속도를 따라가지 못하는 분석 사이클.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-stat">$4.5M</div>
+        <div class="problem-title">연간 낭비 비용</div>
+        <div class="problem-desc">Fortune 500 기업 평균 데이터 비효율 비용. 중소기업도 매출의 15~20%를 낭비하고 있음.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 3: Solution -->
+  <div class="slide slide-solution" data-index="2">
+    <div class="slide-header">
+      <div class="slide-number">03 / 08 &nbsp;·&nbsp; Solution</div>
+      <div class="slide-heading">DataFlow AI가 해결합니다</div>
+      <div class="slide-subheading">자연어 한 줄로 데이터 파이프라인부터 인사이트까지 자동화</div>
+    </div>
+    <div class="solution-layout">
+      <div class="solution-visual">
+        <div class="pipeline">
+          <div class="pipeline-step">
+            <div class="step-icon">🗄️</div>
+            <span>다중 소스 데이터 수집 (DB, API, 파일)</span>
+          </div>
+          <div class="pipeline-arrow">↓</div>
+          <div class="pipeline-step">
+            <div class="step-icon">🤖</div>
+            <span>AI 자동 정제 · 스키마 매핑</span>
+          </div>
+          <div class="pipeline-arrow">↓</div>
+          <div class="pipeline-step">
+            <div class="step-icon">⚡</div>
+            <span>실시간 스트리밍 분석 엔진</span>
+          </div>
+          <div class="pipeline-arrow">↓</div>
+          <div class="pipeline-step">
+            <div class="step-icon">📊</div>
+            <span>자연어 기반 대시보드 자동 생성</span>
+          </div>
+        </div>
+      </div>
+      <div class="solution-points">
+        <div class="solution-point">
+          <div class="point-dot"></div>
+          <div class="point-text">
+            <strong>No-Code 데이터 파이프라인</strong>
+            <span>코딩 없이 드래그&앤드롭으로 수백 개 소스 연결. 평균 구축 시간 8주 → 2시간</span>
+          </div>
+        </div>
+        <div class="solution-point">
+          <div class="point-dot"></div>
+          <div class="point-text">
+            <strong>LLM 기반 자연어 쿼리</strong>
+            <span>"지난달 지역별 매출 상위 10개 제품 보여줘"로 즉시 분석 결과 제공</span>
+          </div>
+        </div>
+        <div class="solution-point">
+          <div class="point-dot"></div>
+          <div class="point-text">
+            <strong>예측 분석 & 이상 탐지</strong>
+            <span>ML 모델이 트렌드 예측과 이상값을 실시간 감지, 선제적 의사결정 지원</span>
+          </div>
+        </div>
+        <div class="solution-point">
+          <div class="point-dot"></div>
+          <div class="point-text">
+            <strong>엔터프라이즈 보안 내재화</strong>
+            <span>SOC2 Type II · ISO 27001 인증. 온프레미스 / 프라이빗 클라우드 배포 지원</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: Tech Stack -->
+  <div class="slide slide-tech" data-index="3">
+    <div class="slide-header">
+      <div class="slide-number">04 / 08 &nbsp;·&nbsp; Technology</div>
+      <div class="slide-heading">기술 스택</div>
+      <div class="slide-subheading">최신 AI/ML 인프라 위에 구축된 엔터프라이즈급 플랫폼</div>
+    </div>
+    <div class="tech-grid">
+      <div class="tech-card">
+        <div class="tech-icon">🧠</div>
+        <div class="tech-name">LLM Engine</div>
+        <div class="tech-role">GPT-4o · Claude 3.5<br>Fine-tuned 모델</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">⚡</div>
+        <div class="tech-name">Apache Kafka</div>
+        <div class="tech-role">실시간 스트리밍<br>이벤트 파이프라인</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔍</div>
+        <div class="tech-name">Vector DB</div>
+        <div class="tech-role">Pinecone · pgvector<br>시맨틱 검색</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">📦</div>
+        <div class="tech-name">Data Lake</div>
+        <div class="tech-role">Delta Lake · Iceberg<br>오픈 포맷 저장</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🐍</div>
+        <div class="tech-name">ML Platform</div>
+        <div class="tech-role">PyTorch · MLflow<br>AutoML 파이프라인</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">☁️</div>
+        <div class="tech-name">Multi-Cloud</div>
+        <div class="tech-role">AWS · Azure · GCP<br>하이브리드 배포</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🔒</div>
+        <div class="tech-name">Security</div>
+        <div class="tech-role">Zero Trust · RBAC<br>엔드투엔드 암호화</div>
+      </div>
+      <div class="tech-card">
+        <div class="tech-icon">🌐</div>
+        <div class="tech-name">API Gateway</div>
+        <div class="tech-role">GraphQL · REST<br>200+ 커넥터</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 5: Market -->
+  <div class="slide slide-market" data-index="4">
+    <div class="slide-header">
+      <div class="slide-number">05 / 08 &nbsp;·&nbsp; Market</div>
+      <div class="slide-heading">시장 규모</div>
+      <div class="slide-subheading">AI 데이터 분석 시장은 연평균 27% 성장 중</div>
+    </div>
+    <div class="market-cards">
+      <div class="market-card">
+        <div class="market-label">TAM · 전체 시장</div>
+        <div class="market-value">$274B</div>
+        <div class="market-unit">글로벌 데이터 분석 시장 (2025)</div>
+        <div class="market-growth">↑ CAGR 27%</div>
+      </div>
+      <div class="market-card">
+        <div class="market-label">SAM · 유효 시장</div>
+        <div class="market-value">$48B</div>
+        <div class="market-unit">AI 기반 BI/Analytics 플랫폼</div>
+        <div class="market-growth">↑ CAGR 34%</div>
+      </div>
+      <div class="market-card">
+        <div class="market-label">SOM · 목표 시장</div>
+        <div class="market-value">$2.4B</div>
+        <div class="market-unit">한국 + 동남아 SMB/Enterprise</div>
+        <div class="market-growth">↑ 3년 내 목표</div>
+      </div>
+    </div>
+    <div class="market-note">출처: Gartner 2025 Data & Analytics Market Report · IDC Asia Pacific Cloud Analytics Forecast</div>
+  </div>
+
+  <!-- Slide 6: Team -->
+  <div class="slide slide-team" data-index="5">
+    <div class="slide-header">
+      <div class="slide-number">06 / 08 &nbsp;·&nbsp; Team</div>
+      <div class="slide-heading">팀 소개</div>
+      <div class="slide-subheading">AI · 데이터 · 엔터프라이즈 분야 평균 12년 경력</div>
+    </div>
+    <div class="team-grid">
+      <div class="team-card">
+        <div class="avatar">👨‍💻</div>
+        <div class="member-name">김재원</div>
+        <div class="member-title">CEO · Co-Founder</div>
+        <div class="member-bio">前 카카오 데이터플랫폼 리드. 서울대 CS 박사. 데이터 인프라 스케일업 경험 10년.</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">👩‍🔬</div>
+        <div class="member-name">이수진</div>
+        <div class="member-title">CTO · Co-Founder</div>
+        <div class="member-bio">前 네이버 AI Lab 수석 연구원. KAIST AI 박사. NLP · AutoML 논문 40편 게재.</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">👨‍💼</div>
+        <div class="member-name">박민준</div>
+        <div class="member-title">CPO</div>
+        <div class="member-bio">前 Tableau 아시아 프로덕트 매니저. 엔터프라이즈 BI 제품 기획 · GTM 전문가.</div>
+      </div>
+      <div class="team-card">
+        <div class="avatar">👩‍💹</div>
+        <div class="member-name">최하은</div>
+        <div class="member-title">CFO</div>
+        <div class="member-bio">前 Goldman Sachs 테크 M&A. Series B까지 3개 스타트업 재무 리딩. CFA 자격 보유.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 7: Traction -->
+  <div class="slide slide-traction" data-index="6">
+    <div class="slide-header">
+      <div class="slide-number">07 / 08 &nbsp;·&nbsp; Traction</div>
+      <div class="slide-heading">지금까지의 성과</div>
+      <div class="slide-subheading">창업 18개월, 제품 출시 9개월 만에 달성한 지표들</div>
+    </div>
+    <div class="traction-grid">
+      <div class="traction-item">
+        <div class="traction-icon">🏢</div>
+        <div>
+          <div class="traction-value">47개</div>
+          <div class="traction-label">기업 고객</div>
+          <div class="traction-desc">삼성전자, LG CNS, 롯데 등 대기업 포함. 파일럿 → 정식 전환율 81%</div>
+        </div>
+      </div>
+      <div class="traction-item">
+        <div class="traction-icon">💰</div>
+        <div>
+          <div class="traction-value">월 1.8억</div>
+          <div class="traction-label">MRR (월 반복 매출)</div>
+          <div class="traction-desc">전월 대비 +32% 성장. 평균 계약 단가 380만원/월</div>
+        </div>
+      </div>
+      <div class="traction-item">
+        <div class="traction-icon">🔄</div>
+        <div>
+          <div class="traction-value">94%</div>
+          <div class="traction-label">고객 유지율 (NRR 138%)</div>
+          <div class="traction-desc">업셀·확장으로 매출 순증. 해약율 연간 6% 이하 유지</div>
+        </div>
+      </div>
+      <div class="traction-item">
+        <div class="traction-icon">🚀</div>
+        <div>
+          <div class="traction-value">Pre-A 완료</div>
+          <div class="traction-label">누적 투자 15억 조달</div>
+          <div class="traction-desc">카카오벤처스 · 소프트뱅크벤처스 · 본엔젤스 참여. 현재 Series A 진행 중</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 8: Closing / Ask -->
+  <div class="slide slide-closing" data-index="7">
+    <div class="grid-bg"></div>
+    <div class="slide-number" style="color:#6c63ff;letter-spacing:3px;font-size:11px;margin-bottom:20px;">08 / 08 &nbsp;·&nbsp; Investment Ask</div>
+    <div class="closing-headline">함께 <span>데이터의 미래</span>를<br>만들어 갑시다</div>
+    <div class="closing-sub">DataFlow AI는 모든 기업이 데이터로 더 나은 결정을 내릴 수 있는 세상을 만듭니다. Series A 투자를 통해 글로벌 시장 진출을 가속화합니다.</div>
+    <div class="ask-box">
+      <div class="ask-amount">50억 원</div>
+      <div class="ask-label">Series A · 목표 투자금</div>
+    </div>
+    <div class="use-of-funds">
+      <div class="fund-item">
+        <div class="fund-pct">40%</div>
+        <div class="fund-label">R&D · AI 고도화</div>
+      </div>
+      <div class="fund-item">
+        <div class="fund-pct">30%</div>
+        <div class="fund-label">영업 · 마케팅</div>
+      </div>
+      <div class="fund-item">
+        <div class="fund-pct">20%</div>
+        <div class="fund-label">해외 진출 (일본·SEA)</div>
+      </div>
+      <div class="fund-item">
+        <div class="fund-pct">10%</div>
+        <div class="fund-label">인프라 · 운영</div>
+      </div>
+    </div>
+    <div class="contact-row">
+      <div class="contact-item">📧 <strong>invest@dataflow.ai</strong></div>
+      <div class="contact-item">🌐 <strong>www.dataflow.ai</strong></div>
+      <div class="contact-item">📞 <strong>02-1234-5678</strong></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <button id="prevBtn" disabled onclick="changeSlide(-1)">&#8592;</button>
+  <div class="dots" id="dots"></div>
+  <span class="slide-counter" id="counter">1 / 8</span>
+  <button id="nextBtn" onclick="changeSlide(1)">&#8594;</button>
+</div>
+
+<div class="kb-hint">← → 키 또는 버튼으로 이동</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const totalSlides = slides.length;
+  let current = 0;
+
+  const dotsContainer = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'dot' + (i === 0 ? ' active' : '');
+    dot.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(dot);
+  });
+
+  function goTo(index) {
+    if (index < 0 || index >= totalSlides) return;
+    const prev = slides[current];
+    prev.classList.remove('active');
+    prev.classList.add('exit');
+    setTimeout(() => prev.classList.remove('exit'), 500);
+
+    current = index;
+    slides[current].classList.add('active');
+
+    // Update dots
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+
+    counter.textContent = `${current + 1} / ${totalSlides}`;
+    prevBtn.disabled = current === 0;
+    nextBtn.disabled = current === totalSlides - 1;
+  }
+
+  function changeSlide(dir) {
+    goTo(current + dir);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') changeSlide(1);
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') changeSlide(-1);
+  });
+
+  // Touch/swipe support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].screenX; });
+  document.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].screenX - touchStartX;
+    if (Math.abs(dx) > 50) changeSlide(dx < 0 ? 1 : -1);
+  });
+</script>
+</body>
+</html>

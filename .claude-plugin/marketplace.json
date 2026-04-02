@@ -1,0 +1,18 @@
+{
+    "name": "smongs-marketplace",
+    "owner": {
+        "name": "smongs",
+        "email": "sssm092843@gmail.com"
+    },
+    "plugins": [
+        {
+            "name": "vailla-ppt",
+            "source": "./plugins/vailla-presentation-plugin",
+            "description": "PPT 생성 플러그인",
+            "version": "1.0.0",
+            "author": {
+                "name": "smongs"
+            }
+        }
+    ]
+}

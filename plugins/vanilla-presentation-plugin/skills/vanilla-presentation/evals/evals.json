@@ -1,0 +1,215 @@
+{
+  "skill_name": "vanilla-presentation",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "웹 개발 입문 주제로 발표 슬라이드 만들어줘. HTML/CSS/JS 기초, DOM 조작, 이벤트 처리, 비동기, 프레임워크 소개 섹션 포함해서 6~7장으로. 한국어로.",
+      "expected_output": "단일 HTML 파일. 6~7개의 슬라이드, 각각 data-theme, data-step 프래그먼트, 화자 노트 포함. 키보드 네비게이션, 프로그레스 바, 인디케이터 dots 동작.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "single-file",
+          "description": "Output is a single .html file with no external JS/CSS file references (except Google Fonts)",
+          "type": "grep_absent",
+          "pattern": "<script src=['\"](?!https://fonts)"
+        },
+        {
+          "id": "slide-count",
+          "description": "Has 6 or 7 <section class='slide'> elements",
+          "type": "grep_count_range",
+          "pattern": "<section class=\"slide",
+          "min": 6,
+          "max": 8
+        },
+        {
+          "id": "has-fragments",
+          "description": "At least one data-step fragment element",
+          "type": "grep_present",
+          "pattern": "data-step="
+        },
+        {
+          "id": "has-navigation-js",
+          "description": "keydown event listener and advance/retreat functions present",
+          "type": "grep_present",
+          "pattern": "keydown"
+        },
+        {
+          "id": "has-progress-bar",
+          "description": "Progress fill element and width update JS present",
+          "type": "grep_present",
+          "pattern": "progressFill"
+        },
+        {
+          "id": "has-speaker-notes",
+          "description": "speakerNotes JSON script tag present",
+          "type": "grep_present",
+          "pattern": "speakerNotes"
+        },
+        {
+          "id": "has-themes",
+          "description": "data-theme attribute used on slides",
+          "type": "grep_present",
+          "pattern": "data-theme="
+        },
+        {
+          "id": "animation-lock",
+          "description": "isAnimating flag with try/finally pattern",
+          "type": "grep_present",
+          "pattern": "isAnimating"
+        },
+        {
+          "id": "touch-swipe",
+          "description": "Touch swipe event handling present",
+          "type": "grep_present",
+          "pattern": "touchstart"
+        },
+        {
+          "id": "hash-sync",
+          "description": "URL hash sync with history.pushState",
+          "type": "grep_present",
+          "pattern": "pushState"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "React vs Vue comparison presentation in English — 7 slides: title, overview, React pros/cons, Vue pros/cons, side-by-side comparison table, when to choose which, closing Q&A. Include code examples where relevant.",
+      "expected_output": "Single HTML file with 7 slides. English content, code blocks with syntax highlighting, two-column layout for comparisons, fragment reveals, speaker notes.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "single-file",
+          "description": "Output is a single .html file with no external JS/CSS file references",
+          "type": "grep_absent",
+          "pattern": "<script src=['\"](?!https://fonts)"
+        },
+        {
+          "id": "slide-count",
+          "description": "Has approximately 7 slides",
+          "type": "grep_count_range",
+          "pattern": "<section class=\"slide",
+          "min": 6,
+          "max": 9
+        },
+        {
+          "id": "has-code-blocks",
+          "description": "At least one <pre><code> block for code examples",
+          "type": "grep_present",
+          "pattern": "<pre>"
+        },
+        {
+          "id": "has-fragments",
+          "description": "Fragment system (data-step) used",
+          "type": "grep_present",
+          "pattern": "data-step="
+        },
+        {
+          "id": "has-navigation-js",
+          "description": "Keyboard navigation present",
+          "type": "grep_present",
+          "pattern": "keydown"
+        },
+        {
+          "id": "has-speaker-notes",
+          "description": "Speaker notes JSON present",
+          "type": "grep_present",
+          "pattern": "speakerNotes"
+        },
+        {
+          "id": "animation-lock",
+          "description": "isAnimating flag for preventing concurrent transitions",
+          "type": "grep_present",
+          "pattern": "isAnimating"
+        },
+        {
+          "id": "touch-swipe",
+          "description": "Touch swipe support",
+          "type": "grep_present",
+          "pattern": "touchstart"
+        },
+        {
+          "id": "hash-sync",
+          "description": "URL hash synchronization",
+          "type": "grep_present",
+          "pattern": "pushState"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "스타트업 피칭 슬라이드 만들어줘. 회사명은 'DataFlow AI', AI 기반 데이터 분석 솔루션 스타트업. 슬라이드 구성: 타이틀 → 문제 → 솔루션 → 기술 스택 → 시장 규모(숫자 카드로) → 팀 소개 → 투자 유치 마무리. 총 8장.",
+      "expected_output": "단일 HTML. 8슬라이드, 회사 정체성에 맞는 테마 선택(violet/navy), 시장 규모 슬라이드는 result-card 레이아웃, 기술 스택은 tech-badge, 각 슬라이드 화자 노트 포함.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "single-file",
+          "description": "Output is a single .html file",
+          "type": "grep_absent",
+          "pattern": "<script src=['\"](?!https://fonts)"
+        },
+        {
+          "id": "slide-count",
+          "description": "Has 8 slides",
+          "type": "grep_count_range",
+          "pattern": "<section class=\"slide",
+          "min": 7,
+          "max": 9
+        },
+        {
+          "id": "has-result-cards",
+          "description": "result-card layout used for market size numbers",
+          "type": "grep_present",
+          "pattern": "result-card"
+        },
+        {
+          "id": "has-tech-badges",
+          "description": "tech-badge or tech-grid for tech stack",
+          "type": "grep_present",
+          "pattern": "tech-badge"
+        },
+        {
+          "id": "has-fragments",
+          "description": "Fragment system used",
+          "type": "grep_present",
+          "pattern": "data-step="
+        },
+        {
+          "id": "has-speaker-notes",
+          "description": "Speaker notes JSON present",
+          "type": "grep_present",
+          "pattern": "speakerNotes"
+        },
+        {
+          "id": "has-themes",
+          "description": "data-theme attributes on slides",
+          "type": "grep_present",
+          "pattern": "data-theme="
+        },
+        {
+          "id": "animation-lock",
+          "description": "isAnimating flag present",
+          "type": "grep_present",
+          "pattern": "isAnimating"
+        },
+        {
+          "id": "touch-swipe",
+          "description": "Touch swipe support",
+          "type": "grep_present",
+          "pattern": "touchstart"
+        },
+        {
+          "id": "hash-sync",
+          "description": "URL hash sync",
+          "type": "grep_present",
+          "pattern": "pushState"
+        },
+        {
+          "id": "dataflow-ai-content",
+          "description": "DataFlow AI company name present in content",
+          "type": "grep_present",
+          "pattern": "DataFlow"
+        }
+      ]
+    }
+  ]
+}

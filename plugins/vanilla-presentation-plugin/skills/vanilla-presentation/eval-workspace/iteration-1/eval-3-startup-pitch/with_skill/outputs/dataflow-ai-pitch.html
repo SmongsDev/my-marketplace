@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DataFlow AI — 스타트업 피칭</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:       #C6A55C;
+      --accent-bright:#E8C97A;
+      --text-primary: #F0EAD6;
+      --text-muted:   rgba(240,234,214,0.8);
+      --text-dim:     rgba(240,234,214,0.45);
+      --border:       rgba(198,165,92,0.2);
+      --surface:      rgba(198,165,92,0.06);
+    }
+
+    html, body {
+      height: 100%; width: 100%;
+      font-family: 'Noto Sans KR', sans-serif;
+      background: #0a0a0f;
+      overflow: hidden;
+    }
+
+    .presentation {
+      display: flex; flex-direction: column;
+      height: 100vh; width: 100vw;
+      position: relative;
+    }
+
+    /* ── Slide Container ── */
+    .slide-container {
+      position: relative; flex: 1; overflow: hidden;
+      contain: layout style paint;
+    }
+
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; z-index: 0;
+      transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1),
+                  transform 0.55s cubic-bezier(0.4,0,0.2,1);
+      transform: translateX(60px) scale(0.98);
+      padding: 40px 60px;
+    }
+    .slide.is-active {
+      opacity: 1; pointer-events: auto; z-index: 10;
+      transform: translateX(0) scale(1);
+    }
+    .slide.is-exit {
+      opacity: 0; z-index: 5;
+    }
+
+    /* ── Themes ── */
+    [data-theme="amber"]   { background: radial-gradient(ellipse at 30% 20%, #2a1f0a 0%, #150f04 50%, #0a0804 100%); }
+    [data-theme="navy"]    { background: radial-gradient(ellipse at 30% 20%, #091428 0%, #050d1e 50%, #020810 100%); }
+    [data-theme="teal"]    { background: radial-gradient(ellipse at 30% 20%, #092220 0%, #041815 50%, #020d0b 100%); }
+    [data-theme="crimson"] { background: radial-gradient(ellipse at 30% 20%, #200a0a 0%, #150404 50%, #0b0202 100%); }
+    [data-theme="sienna"]  { background: radial-gradient(ellipse at 30% 20%, #211208 0%, #160b04 50%, #0c0502 100%); }
+    [data-theme="violet"]  { background: radial-gradient(ellipse at 30% 20%, #160b28 0%, #0d051e 50%, #07020f 100%); }
+
+    /* ── Slide Body ── */
+    .slide-body {
+      width: 100%; max-width: 960px;
+      display: flex; flex-direction: column;
+      gap: 18px;
+    }
+    .slide[data-layout="list"] .slide-body {
+      align-items: flex-start;
+    }
+    .slide:not([data-layout]) .slide-body {
+      align-items: center; text-align: center;
+    }
+
+    /* ── Typography ── */
+    .slide h1 {
+      font-size: clamp(28px, 5vw, 54px); font-weight: 900; line-height: 1.15;
+      background: linear-gradient(135deg, #FFFBEF 30%, #E8C97A 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 12px rgba(198,165,92,0.35));
+    }
+    .slide h2 {
+      font-size: clamp(22px, 3.6vw, 40px); font-weight: 700;
+      color: #F0EAD6;
+    }
+    .slide h3 {
+      font-size: clamp(15px, 2.2vw, 22px); font-weight: 500;
+      color: var(--accent);
+    }
+    .slide p {
+      font-size: clamp(13px, 2vw, 18px); line-height: 1.75;
+      color: var(--text-muted);
+    }
+    .slide ul {
+      list-style: none; padding: 0; margin-top: 14px;
+      display: flex; flex-direction: column; gap: 14px;
+      width: 100%;
+    }
+    .slide ul li {
+      font-size: clamp(14px, 2vw, 18px); line-height: 1.6;
+      color: var(--text-muted);
+      padding: 14px 20px; border-radius: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      display: flex; align-items: flex-start; gap: 12px;
+    }
+    .slide ul li::before {
+      content: '▸'; color: var(--accent); flex-shrink: 0; margin-top: 2px;
+    }
+
+    /* ── Tag ── */
+    .tag {
+      display: inline-block;
+      font-size: clamp(10px, 1.2vw, 13px); font-weight: 700; letter-spacing: 0.15em;
+      text-transform: uppercase; color: var(--accent);
+      border: 1px solid var(--border); border-radius: 100px;
+      padding: 5px 16px; background: var(--surface);
+      width: fit-content;
+    }
+
+    /* ── Meta info (title slide) ── */
+    .meta-info {
+      display: flex; gap: 28px; flex-wrap: wrap;
+      font-size: clamp(12px, 1.5vw, 15px); color: var(--text-dim);
+      margin-top: 6px;
+      justify-content: center;
+    }
+    .meta-info strong { color: var(--accent); }
+
+    /* ── Logo mark ── */
+    .logo-mark {
+      font-size: clamp(40px, 7vw, 80px); line-height: 1;
+      filter: drop-shadow(0 4px 24px rgba(198,165,92,0.4));
+    }
+
+    /* ── Divider line ── */
+    .divider {
+      width: 60px; height: 3px; border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      margin: 4px 0;
+    }
+
+    /* ── Problem cards ── */
+    .problem-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 18px; width: 100%; margin-top: 8px;
+    }
+    .problem-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 22px 20px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .problem-card .icon { font-size: clamp(22px, 3vw, 32px); }
+    .problem-card h3 {
+      font-size: clamp(14px, 1.8vw, 18px); font-weight: 700; color: var(--text-primary);
+    }
+    .problem-card p {
+      font-size: clamp(12px, 1.5vw, 15px); color: var(--text-muted); line-height: 1.6;
+    }
+
+    /* ── Solution cards ── */
+    .solution-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 18px; width: 100%; margin-top: 8px;
+    }
+    .solution-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 22px;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .solution-card .sol-icon { font-size: clamp(20px, 2.8vw, 30px); }
+    .solution-card h3 {
+      font-size: clamp(14px, 1.8vw, 18px); font-weight: 700; color: var(--accent-bright);
+    }
+    .solution-card p {
+      font-size: clamp(12px, 1.5vw, 15px); color: var(--text-muted); line-height: 1.6;
+    }
+
+    /* ── Tech badges ── */
+    .tech-grid {
+      display: flex; flex-wrap: wrap; gap: 14px;
+      justify-content: center; margin-top: 10px; width: 100%;
+    }
+    .tech-badge {
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 18px 22px; min-width: 110px;
+      font-size: clamp(11px, 1.4vw, 14px); font-weight: 600; color: var(--text-muted);
+    }
+    .tech-badge .badge-icon { font-size: clamp(22px, 3vw, 32px); }
+    .tech-badge span { color: var(--text-primary); }
+
+    /* ── Stats / market size ── */
+    .result-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; width: 100%; margin-top: 8px;
+    }
+    .result-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 26px 16px;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      text-align: center;
+    }
+    .result-card .value {
+      font-size: clamp(22px, 3.5vw, 38px); font-weight: 900;
+      background: linear-gradient(135deg, #FFFBEF 30%, #E8C97A 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .result-card .label {
+      font-size: clamp(11px, 1.4vw, 14px); color: var(--text-muted); line-height: 1.5;
+    }
+    .result-card .sub-label {
+      font-size: clamp(10px, 1.2vw, 12px); color: var(--text-dim);
+    }
+
+    /* ── Team grid ── */
+    .team-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 18px; width: 100%; margin-top: 8px;
+    }
+    .team-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 14px; padding: 24px 18px;
+      display: flex; flex-direction: column; align-items: center; gap: 10px;
+      text-align: center;
+    }
+    .team-avatar {
+      width: 64px; height: 64px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px;
+      background: linear-gradient(135deg, rgba(198,165,92,0.2), rgba(198,165,92,0.05));
+      border: 2px solid var(--border);
+    }
+    .team-card .name {
+      font-size: clamp(14px, 1.8vw, 17px); font-weight: 700; color: var(--text-primary);
+    }
+    .team-card .role {
+      font-size: clamp(11px, 1.3vw, 13px); font-weight: 600;
+      color: var(--accent); text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .team-card .bio {
+      font-size: clamp(11px, 1.3vw, 13px); color: var(--text-muted); line-height: 1.5;
+    }
+
+    /* ── CTA / closing ── */
+    .cta-wrap {
+      display: flex; flex-direction: column; align-items: center;
+      gap: 24px; text-align: center;
+    }
+    .cta-amount {
+      font-size: clamp(40px, 7vw, 80px); font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg, #FFFBEF 20%, #E8C97A 60%, #C6A55C 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 4px 24px rgba(198,165,92,0.45));
+    }
+    .cta-sub {
+      font-size: clamp(14px, 2vw, 20px); color: var(--text-muted);
+    }
+    .cta-ask {
+      font-size: clamp(13px, 1.8vw, 17px); color: var(--text-dim); line-height: 1.7;
+    }
+    .contact-row {
+      display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+      margin-top: 8px;
+    }
+    .contact-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: clamp(12px, 1.5vw, 15px); color: var(--text-muted);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 100px; padding: 8px 18px;
+    }
+
+    /* ── Use-case row ── */
+    .use-row {
+      display: flex; gap: 14px; width: 100%; margin-top: 4px;
+    }
+    .use-chip {
+      flex: 1; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+      font-size: clamp(12px, 1.5vw, 15px); color: var(--text-muted); text-align: center;
+      line-height: 1.5;
+    }
+    .use-chip strong { display: block; color: var(--accent-bright); font-size: 1.1em; }
+
+    /* ── Progress bar ── */
+    .progress-bar {
+      height: 3px; background: rgba(198,165,92,0.1); width: 100%;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ── Bottom bar ── */
+    .bottom-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 20px;
+      background: rgba(10,10,15,0.95); backdrop-filter: blur(6px);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0; position: relative;
+    }
+    .nav-btn {
+      background: none; border: 1px solid var(--border); color: var(--accent);
+      border-radius: 8px; width: 36px; height: 36px; cursor: pointer;
+      font-size: 22px; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .nav-btn:hover:not(:disabled) { background: var(--surface); border-color: var(--accent); }
+    .nav-btn:disabled { opacity: 0.35; cursor: default; }
+    .indicators { display: flex; gap: 6px; align-items: center; }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--text-dim); border: none; cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+      padding: 0;
+    }
+    .dot.active { background: var(--accent); transform: scale(1.4); }
+    .slide-counter {
+      font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums;
+      margin-left: 4px;
+    }
+    .transition-label {
+      margin-left: auto; font-size: 11px; color: var(--text-dim);
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer;
+      padding: 3px 8px; border-radius: 4px; border: 1px solid transparent;
+      transition: border-color 0.2s;
+    }
+    .transition-label:hover { border-color: var(--border); }
+    .hint {
+      display: flex; gap: 12px; font-size: 11px; color: var(--text-dim);
+    }
+    .hint span { display: flex; align-items: center; gap: 4px; }
+    kbd {
+      background: rgba(198,165,92,0.1); border: 1px solid var(--border);
+      border-radius: 4px; padding: 1px 5px; font-size: 10px;
+      font-family: monospace; color: var(--accent);
+    }
+    .fs-btn {
+      background: none; border: 1px solid var(--border); color: var(--accent);
+      border-radius: 8px; width: 36px; height: 36px; cursor: pointer;
+      font-size: 16px; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s; flex-shrink: 0;
+    }
+    .fs-btn:hover { background: var(--surface); }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 70px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: rgba(20,15,5,0.95); border: 1px solid var(--border);
+      border-radius: 10px; padding: 10px 20px;
+      font-size: 13px; color: var(--text-muted);
+      opacity: 0; transition: opacity 0.3s, transform 0.3s;
+      pointer-events: none; z-index: 9999;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ── Fragment system ── */
+    [data-step] {
+      opacity: 0; transform: translateY(16px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none;
+    }
+    [data-step].revealed {
+      opacity: 1; transform: translateY(0); pointer-events: auto;
+      transition-delay: calc(var(--si, 0) * 0.07s);
+    }
+
+    /* ── Speaker notes popup ── */
+    .notes-overlay {
+      display: none; position: fixed; inset: 0; z-index: 99999;
+      background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    }
+    .notes-popup {
+      position: absolute; bottom: 80px; left: 50%; transform: translateX(-50%);
+      width: min(600px, 90vw); background: #100e08;
+      border: 1px solid var(--border); border-radius: 16px;
+      padding: 24px 28px; color: var(--text-muted); font-size: 15px; line-height: 1.7;
+    }
+    .notes-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 12px;
+    }
+    .notes-title { font-size: 12px; font-weight: 700; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+    .notes-close {
+      background: none; border: none; color: var(--text-dim); cursor: pointer;
+      font-size: 20px; line-height: 1;
+    }
+    .notes-timer { font-size: 20px; font-weight: 700; color: var(--accent); text-align: right; }
+
+    @media (max-width: 700px) {
+      .problem-grid, .team-grid { grid-template-columns: 1fr; }
+      .solution-grid { grid-template-columns: 1fr; }
+      .result-grid { grid-template-columns: repeat(2, 1fr); }
+      .hint { display: none; }
+      .slide { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="presentation">
+  <div class="slide-container" id="slideContainer">
+
+    <!-- ── Slide 0: Title ── -->
+    <section class="slide is-active" data-index="0" data-theme="violet">
+      <div class="slide-body">
+        <div class="tag">AI · Data Analytics · Startup</div>
+        <div class="logo-mark" style="margin: 8px 0;">🌊</div>
+        <h1>DataFlow AI</h1>
+        <div class="divider" style="margin: 0 auto;"></div>
+        <p data-step="1" style="--si:0; font-size: clamp(15px, 2.2vw, 22px); max-width: 620px;">
+          AI 기반 데이터 분석 솔루션으로<br>비즈니스 인텔리전스의 새로운 기준을 세웁니다
+        </p>
+        <div class="meta-info" data-step="2" style="--si:1">
+          <span><strong>발표자</strong>&ensp;DataFlow AI Team</span>
+          <span><strong>날짜</strong>&ensp;2026년 3월 31일</span>
+          <span><strong>라운드</strong>&ensp;시리즈 A 투자 유치</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Slide 1: Problem ── -->
+    <section class="slide" data-index="1" data-theme="crimson" data-layout="list">
+      <div class="slide-body">
+        <div class="tag">Problem</div>
+        <h2>기업 데이터 분석의 3가지 핵심 문제</h2>
+        <div class="divider"></div>
+        <div class="problem-grid">
+          <div class="problem-card" data-step="1" style="--si:0">
+            <div class="icon">⏳</div>
+            <h3>분석 속도 문제</h3>
+            <p>기존 BI 툴은 대용량 데이터 처리 시 수 시간이 소요되어 실시간 의사결정이 불가능합니다.</p>
+          </div>
+          <div class="problem-card" data-step="2" style="--si:1">
+            <div class="icon">🧱</div>
+            <h3>사일로 데이터</h3>
+            <p>부서별로 분산된 데이터는 통합이 어렵고, 전사 차원의 인사이트 도출이 사실상 불가합니다.</p>
+          </div>
+          <div class="problem-card" data-step="3" style="--si:2">
+            <div class="icon">💸</div>
+            <h3>높은 전문 인력 비용</h3>
+            <p>데이터 분석가·엔지니어 인건비가 급증하며, 중소기업은 전문 인력 확보 자체가 어렵습니다.</p>
+          </div>
+        </div>
+        <p data-step="4" style="--si:3; margin-top: 8px; font-size: clamp(13px, 1.8vw, 16px); text-align: center; color: var(--accent);">
+          → 기업의 <strong>75%</strong>가 데이터가 있어도 제대로 활용하지 못하고 있습니다
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Slide 2: Solution ── -->
+    <section class="slide" data-index="2" data-theme="teal" data-layout="list">
+      <div class="slide-body">
+        <div class="tag">Solution</div>
+        <h2>DataFlow AI의 답: 자율 데이터 인텔리전스</h2>
+        <div class="divider"></div>
+        <div class="solution-grid">
+          <div class="solution-card" data-step="1" style="--si:0">
+            <div class="sol-icon">⚡</div>
+            <h3>실시간 스트리밍 분석</h3>
+            <p>Apache Kafka + 자체 AI 엔진으로 수억 건 데이터를 밀리초 단위로 처리. 실시간 대시보드 제공.</p>
+          </div>
+          <div class="solution-card" data-step="2" style="--si:1">
+            <div class="sol-icon">🔗</div>
+            <h3>원클릭 데이터 통합</h3>
+            <p>200+ 데이터 소스 커넥터로 ERP, CRM, 클라우드 데이터를 자동으로 통합·정제합니다.</p>
+          </div>
+          <div class="solution-card" data-step="3" style="--si:2">
+            <div class="sol-icon">🤖</div>
+            <h3>AI 자동 인사이트</h3>
+            <p>LLM 기반 자연어 쿼리로 코딩 없이 누구나 데이터를 분석하고 보고서를 자동 생성합니다.</p>
+          </div>
+          <div class="solution-card" data-step="4" style="--si:3">
+            <div class="sol-icon">🔒</div>
+            <h3>엔터프라이즈 보안</h3>
+            <p>온프레미스·프라이빗 클라우드 배포 지원. SOC2 Type II, ISO 27001 인증 완료.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Slide 3: Tech Stack ── -->
+    <section class="slide" data-index="3" data-theme="navy" data-layout="list">
+      <div class="slide-body">
+        <div class="tag">Technology</div>
+        <h2>검증된 기술 스택</h2>
+        <div class="divider"></div>
+        <div class="tech-grid" style="margin-top: 16px;">
+          <div class="tech-badge" data-step="1" style="--si:0">
+            <div class="badge-icon">🧠</div>
+            <span>LLM Core</span>
+            <div style="font-size: 11px; color: var(--text-dim);">자체 파인튜닝 모델</div>
+          </div>
+          <div class="tech-badge" data-step="2" style="--si:1">
+            <div class="badge-icon">🌊</div>
+            <span>Apache Kafka</span>
+            <div style="font-size: 11px; color: var(--text-dim);">스트리밍 파이프라인</div>
+          </div>
+          <div class="tech-badge" data-step="3" style="--si:2">
+            <div class="badge-icon">🐍</div>
+            <span>Python / Ray</span>
+            <div style="font-size: 11px; color: var(--text-dim);">분산 컴퓨팅</div>
+          </div>
+          <div class="tech-badge" data-step="4" style="--si:3">
+            <div class="badge-icon">🗄️</div>
+            <span>ClickHouse</span>
+            <div style="font-size: 11px; color: var(--text-dim);">OLAP 데이터베이스</div>
+          </div>
+          <div class="tech-badge" data-step="5" style="--si:4">
+            <div class="badge-icon">☁️</div>
+            <span>Kubernetes</span>
+            <div style="font-size: 11px; color: var(--text-dim);">멀티클라우드 오케스트</div>
+          </div>
+          <div class="tech-badge" data-step="6" style="--si:5">
+            <div class="badge-icon">📊</div>
+            <span>Apache Arrow</span>
+            <div style="font-size: 11px; color: var(--text-dim);">벡터화 연산</div>
+          </div>
+          <div class="tech-badge" data-step="7" style="--si:6">
+            <div class="badge-icon">🔐</div>
+            <span>Zero-Trust</span>
+            <div style="font-size: 11px; color: var(--text-dim);">보안 아키텍처</div>
+          </div>
+          <div class="tech-badge" data-step="8" style="--si:7">
+            <div class="badge-icon">⚙️</div>
+            <span>GraphQL API</span>
+            <div style="font-size: 11px; color: var(--text-dim);">유연한 인터페이스</div>
+          </div>
+        </div>
+        <p data-step="9" style="--si:8; text-align: center; margin-top: 10px; font-size: clamp(12px, 1.5vw, 15px);">
+          특허 출원 3건 · 기술 논문 2편 게재 (NeurIPS 2025, VLDB 2025)
+        </p>
+      </div>
+    </section>
+
+    <!-- ── Slide 4: Market Size ── -->
+    <section class="slide" data-index="4" data-theme="sienna">
+      <div class="slide-body">
+        <div class="tag">Market Opportunity</div>
+        <h2>거대한 시장, 지금이 적기</h2>
+        <div class="divider" style="margin: 0 auto;"></div>
+        <div class="result-grid" style="margin-top: 16px;">
+          <div class="result-card" data-step="1" style="--si:0">
+            <div class="value">$274B</div>
+            <div class="label">글로벌 빅데이터<br>시장 규모 (2026)</div>
+            <div class="sub-label">↑ CAGR 13.5%</div>
+          </div>
+          <div class="result-card" data-step="2" style="--si:1">
+            <div class="value">$18B</div>
+            <div class="label">AI 분석 솔루션<br>아시아태평양 시장</div>
+            <div class="sub-label">↑ CAGR 21.2%</div>
+          </div>
+          <div class="result-card" data-step="3" style="--si:2">
+            <div class="value">$2.3B</div>
+            <div class="label">국내 데이터 분석<br>솔루션 시장 (2026)</div>
+            <div class="sub-label">↑ CAGR 18.7%</div>
+          </div>
+          <div class="result-card" data-step="4" style="--si:3">
+            <div class="value">SAM<br><span style="font-size: 0.55em;">$420M</span></div>
+            <div class="label">당사 목표<br>어드레서블 시장</div>
+            <div class="sub-label">엔터프라이즈 중심</div>
+          </div>
+        </div>
+        <div class="use-row" data-step="5" style="--si:4; margin-top: 18px;">
+          <div class="use-chip"><strong>금융·핀테크</strong>리얼타임 리스크 분석</div>
+          <div class="use-chip"><strong>이커머스·리테일</strong>수요 예측 & 재고 최적화</div>
+          <div class="use-chip"><strong>헬스케어</strong>환자 데이터 통합 분석</div>
+          <div class="use-chip"><strong>제조·SCM</strong>공급망 이상 탐지</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Slide 5: Team ── -->
+    <section class="slide" data-index="5" data-theme="amber" data-layout="list">
+      <div class="slide-body">
+        <div class="tag">Team</div>
+        <h2>세계적 수준의 팀</h2>
+        <div class="divider"></div>
+        <div class="team-grid">
+          <div class="team-card" data-step="1" style="--si:0">
+            <div class="team-avatar">👨‍💻</div>
+            <div class="name">김민준</div>
+            <div class="role">CEO · Co-founder</div>
+            <div class="bio">前 네이버 데이터 플랫폼 리드. KAIST 컴퓨터공학 박사. 데이터 인프라 15년 경력.</div>
+          </div>
+          <div class="team-card" data-step="2" style="--si:1">
+            <div class="team-avatar">👩‍🔬</div>
+            <div class="name">이수아</div>
+            <div class="role">CTO · Co-founder</div>
+            <div class="bio">前 Google Brain 리서처. Stanford AI Lab 석사. NeurIPS·ICML 논문 12편.</div>
+          </div>
+          <div class="team-card" data-step="3" style="--si:2">
+            <div class="team-avatar">👨‍💼</div>
+            <div class="name">박성훈</div>
+            <div class="role">CPO</div>
+            <div class="bio">前 Tableau 시니어 PM. SaaS B2B 제품 기획 8년. 엔터프라이즈 세일즈 전문.</div>
+          </div>
+          <div class="team-card" data-step="4" style="--si:3">
+            <div class="team-avatar">👩‍💻</div>
+            <div class="name">최지우</div>
+            <div class="role">VP Engineering</div>
+            <div class="bio">前 카카오 데이터 인프라팀장. 분산 시스템·스트리밍 아키텍처 전문가.</div>
+          </div>
+          <div class="team-card" data-step="5" style="--si:4">
+            <div class="team-avatar">👨‍⚖️</div>
+            <div class="name">장도윤</div>
+            <div class="role">CFO</div>
+            <div class="bio">前 삼성벤처투자 심사역. 스타트업 투자·M&A 10건 이상. CFA 자격 보유.</div>
+          </div>
+          <div class="team-card" data-step="6" style="--si:5">
+            <div class="team-avatar">👩‍🎨</div>
+            <div class="name">한예은</div>
+            <div class="role">Head of Design</div>
+            <div class="bio">前 Figma 디자이너. 데이터 시각화·UX 전문. D&AD 어워드 수상.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Slide 6: Traction ── -->
+    <section class="slide" data-index="6" data-theme="navy" data-layout="list">
+      <div class="slide-body">
+        <div class="tag">Traction</div>
+        <h2>검증된 성과 &amp; 성장 지표</h2>
+        <div class="divider"></div>
+        <div class="result-grid" style="margin-top: 14px;">
+          <div class="result-card" data-step="1" style="--si:0">
+            <div class="value">42</div>
+            <div class="label">베타 파일럿<br>고객사</div>
+            <div class="sub-label">SK, 현대차 포함</div>
+          </div>
+          <div class="result-card" data-step="2" style="--si:1">
+            <div class="value">₩3.8B</div>
+            <div class="label">누적 ARR<br>(연간 반복 매출)</div>
+            <div class="sub-label">MoM +28%</div>
+          </div>
+          <div class="result-card" data-step="3" style="--si:2">
+            <div class="value">96%</div>
+            <div class="label">고객 유지율<br>(NRR 142%)</div>
+            <div class="sub-label">업셀 강세</div>
+          </div>
+          <div class="result-card" data-step="4" style="--si:3">
+            <div class="value">4.9/5</div>
+            <div class="label">고객 만족도<br>(CSAT)</div>
+            <div class="sub-label">NPS 78점</div>
+          </div>
+        </div>
+        <ul style="margin-top: 12px;">
+          <li data-step="5" style="--si:4">정부 혁신 창업 100 선정 (2024) · 과기부 AI 바우처 사업 우선 공급기업</li>
+          <li data-step="6" style="--si:5">시드 라운드 ₩8억 완료 (소프트뱅크벤처스, 카카오벤처스 참여)</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ── Slide 7: Investment Ask / Closing ── -->
+    <section class="slide" data-index="7" data-theme="violet">
+      <div class="slide-body">
+        <div class="cta-wrap">
+          <div class="tag">Investment Ask</div>
+          <div class="cta-amount" data-step="1" style="--si:0">₩ 50억</div>
+          <div class="cta-sub" data-step="2" style="--si:1">시리즈 A · 지분 15%</div>
+          <div class="divider" style="margin: 0 auto;"></div>
+          <ul style="text-align: left; max-width: 560px; margin-top: 0;" data-step="3" style="--si:2">
+            <li style="--si:0" data-step="3">R&D 60% — AI 모델 고도화 · 멀티모달 분석 기능 개발</li>
+            <li style="--si:1" data-step="4">영업·마케팅 25% — 엔터프라이즈 세일즈팀 구축 및 일본·동남아 진출</li>
+            <li style="--si:2" data-step="5">인프라·운영 15% — 글로벌 리전 확장 및 SOC2 감사 비용</li>
+          </ul>
+          <p class="cta-ask" data-step="6" style="--si:5">
+            DataFlow AI와 함께 데이터 분석의 미래를 만들어가실 파트너를 찾습니다.
+          </p>
+          <div class="contact-row" data-step="7" style="--si:6">
+            <span class="contact-item">📧 <strong>invest@dataflow.ai</strong></span>
+            <span class="contact-item">🌐 <strong>www.dataflow.ai</strong></span>
+            <span class="contact-item">📞 <strong>02-1234-5678</strong></span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /slide-container -->
+
+  <div class="progress-bar">
+    <div class="progress-fill" id="progressFill"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <button class="nav-btn" id="btnPrev" disabled aria-label="이전 슬라이드">‹</button>
+    <div class="indicators" id="indicators"></div>
+    <span class="slide-counter">
+      <span id="cntCur">1</span>&thinsp;/&thinsp;<span id="cntTot"></span>
+    </span>
+    <button class="nav-btn" id="btnNext" aria-label="다음 슬라이드">›</button>
+    <span class="transition-label" id="transLabel" title="T 키로 전환 효과 변경">slide</span>
+    <div class="hint" id="hintBar">
+      <span><kbd>→</kbd> 다음</span>
+      <span><kbd>←</kbd> 이전</span>
+      <span><kbd>T</kbd> 전환</span>
+      <span><kbd>S</kbd> 노트</span>
+      <span><kbd>F</kbd> 전체화면</span>
+    </div>
+    <button class="fs-btn" id="btnFs" title="전체화면 (F)">⛶</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Speaker Notes -->
+<div class="notes-overlay" id="notesOverlay">
+  <div class="notes-popup">
+    <div class="notes-header">
+      <span class="notes-title">🎤 Speaker Notes — Slide <span id="notesSlideNum">1</span></span>
+      <div class="notes-timer" id="notesTimer">00:00</div>
+      <button class="notes-close" id="notesClose">✕</button>
+    </div>
+    <div id="notesContent"></div>
+  </div>
+</div>
+
+<script type="application/json" id="speakerNotes">
+[
+  "DataFlow AI를 소개합니다. 저희는 AI 기반 데이터 분석 플랫폼으로 기업의 의사결정 속도를 10배 끌어올리는 것을 목표로 합니다. 오늘 피칭에서 시장 기회와 저희 팀의 역량을 확인하실 수 있습니다.",
+  "데이터는 넘쳐나지만 활용하지 못하는 기업이 전체의 75%입니다. 분석 속도, 데이터 사일로, 전문인력 부족 — 이 세 가지 문제가 기업의 데이터 활용을 가로막는 핵심 장벽입니다.",
+  "DataFlow AI는 실시간 분석, 원클릭 통합, AI 자동 인사이트, 엔터프라이즈 보안을 한 플랫폼에서 제공합니다. 고객은 데이터 엔지니어 없이도 자연어로 복잡한 분석을 수행할 수 있습니다.",
+  "저희 기술 스택은 전부 검증된 오픈소스 위에 독자 AI를 얹은 구조입니다. 특히 자체 파인튜닝 LLM과 ClickHouse 기반 OLAP 엔진이 경쟁사 대비 5–8배 빠른 쿼리 성능을 실현합니다.",
+  "글로벌 빅데이터 시장은 2026년 $274B, 연 13.5% 성장 중입니다. 아시아태평양 AI 분석 시장은 더 빠른 21% 성장률을 보입니다. 국내 엔터프라이즈 시장(SAM $420M)부터 공략해 빠르게 해외로 확장할 계획입니다.",
+  "평균 15년 이상의 업력을 가진 전문가 6인으로 구성된 팀입니다. 네이버, 카카오, Google Brain 출신으로 기술·제품·사업 각 분야를 균형 있게 커버합니다.",
+  "베타 42개사, ARR ₩3.8B, MoM +28% 성장 중입니다. 고객 유지율 96%, NPS 78점으로 제품 시장 적합성(PMF)은 이미 입증됐습니다. 이제는 본격 스케일업이 필요한 시점입니다.",
+  "시리즈 A로 ₩50억을 유치하고자 합니다. R&D 고도화와 해외 진출을 가속화해 18개월 내 ARR ₩30B 달성을 목표로 합니다. invest@dataflow.ai로 연락 주시면 빠르게 미팅을 잡겠습니다. 감사합니다."
+]
+</script>
+
+<script>
+  const container    = document.getElementById('slideContainer');
+  const slides       = Array.from(container.querySelectorAll('.slide'));
+  const progressFill = document.getElementById('progressFill');
+  const indicators   = document.getElementById('indicators');
+  const cntCur       = document.getElementById('cntCur');
+  const cntTot       = document.getElementById('cntTot');
+  const btnPrev      = document.getElementById('btnPrev');
+  const btnNext      = document.getElementById('btnNext');
+  const transLabel   = document.getElementById('transLabel');
+  const toastEl      = document.getElementById('toast');
+  const notesOverlay = document.getElementById('notesOverlay');
+  const notesContent = document.getElementById('notesContent');
+  const notesSlideNum= document.getElementById('notesSlideNum');
+  const notesClose   = document.getElementById('notesClose');
+  const notesTimer   = document.getElementById('notesTimer');
+
+  const TOTAL = slides.length;
+  const TRANSITION_TYPES = ['slide', 'fade', 'zoom', 'flip'];
+  let currentIndex = 0, isAnimating = false, isComposing = false;
+  let transitionType = 'slide';
+  const DURATION = 520;
+
+  // Speaker notes
+  let notesData = [];
+  try {
+    notesData = JSON.parse(document.getElementById('speakerNotes').textContent);
+  } catch(e) {}
+
+  // ── Timer ──
+  let timerStart = null, timerInterval = null;
+  function startTimer() {
+    if (timerStart) return;
+    timerStart = Date.now();
+    timerInterval = setInterval(() => {
+      const s = Math.floor((Date.now() - timerStart) / 1000);
+      const m = Math.floor(s / 60), sec = s % 60;
+      notesTimer.textContent = `${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+    }, 1000);
+  }
+  function stopTimer() {
+    clearInterval(timerInterval);
+    timerInterval = null; timerStart = null;
+  }
+
+  // ── Fragments ──
+  function getFragments(slide) {
+    return Array.from(slide.querySelectorAll('[data-step]'))
+      .sort((a,b) => +a.dataset.step - +b.dataset.step);
+  }
+  function resetFragments(slide) {
+    getFragments(slide).forEach(f => f.classList.remove('revealed'));
+  }
+
+  // ── Transitions ──
+  function applyTransitionCSS() {
+    const dur = DURATION / 1000, ease = 'cubic-bezier(0.4,0,0.2,1)';
+    const rules = {
+      slide: `opacity ${dur}s ${ease}, transform ${dur}s ${ease}`,
+      fade:  `opacity ${dur}s ${ease}`,
+      zoom:  `opacity ${dur}s ${ease}, transform ${dur}s ${ease}`,
+      flip:  `opacity ${dur}s ${ease}, transform ${dur}s ${ease}`,
+    };
+    slides.forEach(s => { s.style.transition = rules[transitionType]; });
+    container.style.perspective = transitionType === 'flip' ? '1000px' : '';
+  }
+  function getEnterTransform(dir) {
+    const d = dir === 'next' ? 1 : -1;
+    switch (transitionType) {
+      case 'slide': return `translateX(${d * 60}px) scale(0.98)`;
+      case 'zoom':  return `scale(${dir === 'next' ? 0.82 : 1.18})`;
+      case 'flip':  return `rotateY(${d * 80}deg)`;
+      default:      return 'none';
+    }
+  }
+  function getExitTransform(dir) {
+    const d = dir === 'next' ? -1 : 1;
+    switch (transitionType) {
+      case 'slide': return `translateX(${d * 60}px) scale(0.98)`;
+      case 'zoom':  return `scale(${dir === 'next' ? 1.18 : 0.82})`;
+      case 'flip':  return `rotateY(${d * -80}deg)`;
+      default:      return 'none';
+    }
+  }
+  function cycleTransition() {
+    const i = TRANSITION_TYPES.indexOf(transitionType);
+    transitionType = TRANSITION_TYPES[(i + 1) % TRANSITION_TYPES.length];
+    applyTransitionCSS();
+    transLabel.textContent = transitionType;
+    showToast(`전환 효과: ${transitionType}`);
+  }
+
+  // ── UI ──
+  function updateUI(idx) {
+    if (idx === undefined) idx = currentIndex;
+    cntCur.textContent = idx + 1;
+    progressFill.style.width = `${(idx + 1) / TOTAL * 100}%`;
+    btnPrev.disabled = idx === 0;
+    btnNext.disabled = idx === TOTAL - 1;
+    Array.from(indicators.children).forEach((dot, i) => dot.classList.toggle('active', i === idx));
+  }
+
+  // ── Hash ──
+  function syncHash() {
+    history.pushState({ slideIndex: currentIndex }, '', `#slide-${currentIndex + 1}`);
+  }
+  window.addEventListener('hashchange', () => {
+    const m = location.hash.match(/slide-(\d+)/);
+    if (m) { const i = +m[1] - 1; if (!isNaN(i) && i !== currentIndex) goTo(i); }
+  });
+
+  // ── Toast ──
+  let toastTid = null;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTid);
+    toastTid = setTimeout(() => toastEl.classList.remove('show'), 2000);
+  }
+
+  // ── Animation helpers ──
+  const nextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  function waitFor(el) {
+    return new Promise(resolve => {
+      let done = false;
+      const finish = () => {
+        if (done) return; done = true;
+        el.removeEventListener('transitionend', finish);
+        clearTimeout(tid); resolve();
+      };
+      const tid = setTimeout(finish, DURATION + 80);
+      el.addEventListener('transitionend', finish);
+    });
+  }
+
+  // ── Core navigation ──
+  async function goTo(nextIdx, direction) {
+    if (isAnimating || nextIdx === currentIndex) return;
+    if (nextIdx < 0 || nextIdx >= TOTAL) return;
+    isAnimating = true;
+    const dir = direction || (nextIdx > currentIndex ? 'next' : 'prev');
+    const oldSlide = slides[currentIndex], newSlide = slides[nextIdx];
+    updateUI(nextIdx);
+    try {
+      oldSlide.style.willChange = 'transform, opacity';
+      newSlide.style.willChange = 'transform, opacity';
+      newSlide.style.transition = 'none';
+      newSlide.style.transform  = getEnterTransform(dir);
+      newSlide.style.opacity    = '0';
+      await nextFrame();
+      applyTransitionCSS();
+      oldSlide.classList.add('is-exit');
+      oldSlide.classList.remove('is-active');
+      oldSlide.style.transform = getExitTransform(dir);
+      oldSlide.style.opacity   = '0';
+      newSlide.style.transform = 'translateX(0) scale(1) rotateY(0deg)';
+      newSlide.style.opacity   = '1';
+      newSlide.classList.add('is-active');
+      await waitFor(oldSlide);
+      [oldSlide, newSlide].forEach(s => {
+        s.style.transform = s.style.opacity = s.style.zIndex = '';
+        s.style.willChange = 'auto';
+      });
+      oldSlide.classList.remove('is-exit');
+      resetFragments(newSlide);
+      currentIndex = nextIdx;
+      btnPrev.disabled = currentIndex === 0;
+      btnNext.disabled = currentIndex === TOTAL - 1;
+      syncHash();
+      // Update notes popup if open
+      if (notesOverlay.style.display === 'block') openSpeakerNotes();
+    } finally { isAnimating = false; }
+  }
+
+  function advance() {
+    const next = getFragments(slides[currentIndex]).find(f => !f.classList.contains('revealed'));
+    if (next) { next.classList.add('revealed'); return; }
+    if (currentIndex < TOTAL - 1) goTo(currentIndex + 1, 'next');
+  }
+  function retreat() {
+    const revealed = getFragments(slides[currentIndex]).filter(f => f.classList.contains('revealed'));
+    if (revealed.length) { revealed.at(-1).classList.remove('revealed'); return; }
+    if (currentIndex > 0) goTo(currentIndex - 1, 'prev');
+  }
+
+  // ── Fullscreen ──
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  // ── Speaker notes ──
+  function openSpeakerNotes() {
+    const note = notesData[currentIndex] || '노트가 없습니다.';
+    notesContent.textContent = note;
+    notesSlideNum.textContent = currentIndex + 1;
+    notesOverlay.style.display = 'block';
+    startTimer();
+  }
+
+  notesClose.addEventListener('click', () => {
+    notesOverlay.style.display = 'none';
+    stopTimer();
+  });
+  notesOverlay.addEventListener('click', (e) => {
+    if (e.target === notesOverlay) { notesOverlay.style.display = 'none'; stopTimer(); }
+  });
+
+  // ── Attach events ──
+  function attachEvents() {
+    btnPrev.addEventListener('click', retreat);
+    btnNext.addEventListener('click', advance);
+    document.getElementById('btnFs').addEventListener('click', toggleFullscreen);
+    transLabel.addEventListener('click', cycleTransition);
+
+    document.addEventListener('keydown', e => {
+      if (isComposing) return;
+      const tag = document.activeElement?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      switch (e.key) {
+        case 'ArrowRight': case 'PageDown': advance();        e.preventDefault(); break;
+        case 'ArrowLeft':  case 'PageUp':  retreat();        e.preventDefault(); break;
+        case ' ':                          advance();        e.preventDefault(); break;
+        case 'Home':                       goTo(0);          e.preventDefault(); break;
+        case 'End':                        goTo(TOTAL - 1);  e.preventDefault(); break;
+        case 't': case 'T': cycleTransition(); break;
+        case 'f': case 'F': toggleFullscreen(); break;
+        case 's': case 'S': openSpeakerNotes(); break;
+      }
+    });
+    document.addEventListener('compositionstart', () => { isComposing = true; });
+    document.addEventListener('compositionend',   () => { isComposing = false; });
+
+    // Touch swipe
+    let touchStartX = 0, touchStartY = 0;
+    container.addEventListener('touchstart', e => {
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+    container.addEventListener('touchend', e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      if (Math.abs(dx) < 50 || Math.abs(dy) / Math.abs(dx) > 0.6) return;
+      dx < 0 ? advance() : retreat();
+    }, { passive: true });
+  }
+
+  // ── Init ──
+  function init() {
+    cntTot.textContent = TOTAL;
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `${i + 1}번 슬라이드`);
+      dot.addEventListener('click', () => goTo(i));
+      indicators.appendChild(dot);
+    });
+    const match = location.hash.match(/slide-(\d+)/);
+    if (match) {
+      const idx = +match[1] - 1;
+      if (idx > 0 && idx < TOTAL) {
+        slides[0].classList.remove('is-active');
+        slides[idx].classList.add('is-active');
+        currentIndex = idx;
+      }
+    }
+    updateUI();
+    attachEvents();
+    applyTransitionCSS();
+  }
+  init();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+{
+  "run_id": "eval-2-with_skill",
+  "pass_rate": 1.0,
+  "expectations": [
+    {
+      "text": "single-file",
+      "passed": true,
+      "evidence": "No forbidden patterns found"
+    },
+    {
+      "text": "slide-count",
+      "passed": true,
+      "evidence": "Found 7 matches (expected 6-9)"
+    },
+    {
+      "text": "has-code-blocks",
+      "passed": true,
+      "evidence": "Found 2 matches"
+    },
+    {
+      "text": "has-fragments",
+      "passed": true,
+      "evidence": "Found 18 matches"
+    },
+    {
+      "text": "has-navigation-js",
+      "passed": true,
+      "evidence": "Found 1 matches"
+    },
+    {
+      "text": "has-speaker-notes",
+      "passed": true,
+      "evidence": "Found 3 matches"
+    },
+    {
+      "text": "animation-lock",
+      "passed": true,
+      "evidence": "Found 4 matches"
+    },
+    {
+      "text": "touch-swipe",
+      "passed": true,
+      "evidence": "Found 1 matches"
+    },
+    {
+      "text": "hash-sync",
+      "passed": true,
+      "evidence": "Found 1 matches"
+    }
+  ]
+}

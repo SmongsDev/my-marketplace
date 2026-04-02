@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>웹 개발 입문</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent: #4f8ef7;
+      --accent2: #a78bfa;
+      --bg-dark: #0f172a;
+      --bg-card: #1e293b;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --green: #34d399;
+      --yellow: #fbbf24;
+      --pink: #f472b6;
+      --radius: 14px;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Segoe UI', 'Apple SD Gothic Neo', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    /* ── Layout ── */
+    #presentation {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+    .slide.exit-left {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* ── Slide number badge ── */
+    #slide-counter {
+      position: fixed;
+      bottom: 28px;
+      right: 36px;
+      font-size: 13px;
+      color: var(--muted);
+      letter-spacing: 1px;
+    }
+
+    /* ── Navigation ── */
+    .nav-btn {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 100;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.15); }
+    #prev-btn { left: 20px; }
+    #next-btn { right: 20px; }
+
+    /* ── Progress bar ── */
+    #progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.4s ease;
+      z-index: 200;
+    }
+
+    /* ── Dot indicators ── */
+    #dots {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--muted);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .dot.active {
+      background: var(--accent);
+      transform: scale(1.35);
+    }
+
+    /* ── Common slide components ── */
+    .slide-label {
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    h1 { font-size: clamp(2rem, 5vw, 3.4rem); font-weight: 800; line-height: 1.15; }
+    h2 { font-size: clamp(1.6rem, 3.5vw, 2.4rem); font-weight: 700; margin-bottom: 28px; }
+    h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; color: var(--accent); }
+    p  { font-size: 1.05rem; color: var(--muted); line-height: 1.75; }
+
+    .subtitle {
+      font-size: 1.2rem;
+      color: var(--muted);
+      margin-top: 16px;
+      line-height: 1.6;
+    }
+
+    /* ── Card grid ── */
+    .card-grid {
+      display: grid;
+      gap: 20px;
+      width: 100%;
+      max-width: 960px;
+    }
+    .card-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .card-grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, rgba(79,142,247,0.08), transparent 60%);
+    }
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+      display: block;
+    }
+    .card p { font-size: 0.92rem; margin-top: 4px; }
+
+    /* ── Code block ── */
+    pre {
+      background: #0d1117;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px;
+      padding: 22px 26px;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      overflow-x: auto;
+      font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      color: #c9d1d9;
+      width: 100%;
+      max-width: 820px;
+    }
+    .kw  { color: #ff7b72; }
+    .fn  { color: #d2a8ff; }
+    .str { color: #a5d6ff; }
+    .cm  { color: #8b949e; font-style: italic; }
+    .num { color: #79c0ff; }
+    .tag { color: #7ee787; }
+    .attr{ color: #e3b341; }
+
+    /* ── Two-column layout ── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      width: 100%;
+      max-width: 960px;
+      align-items: start;
+    }
+
+    /* ── List ── */
+    .styled-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      width: 100%;
+      max-width: 820px;
+    }
+    .styled-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 0.97rem;
+      color: var(--text);
+    }
+    .styled-list li .bullet {
+      min-width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    /* ── Badge ── */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .badge-blue   { background: rgba(79,142,247,0.18); color: var(--accent); }
+    .badge-purple { background: rgba(167,139,250,0.18); color: var(--accent2); }
+    .badge-green  { background: rgba(52,211,153,0.18); color: var(--green); }
+    .badge-yellow { background: rgba(251,191,36,0.18); color: var(--yellow); }
+    .badge-pink   { background: rgba(244,114,182,0.18); color: var(--pink); }
+
+    /* ── Highlight box ── */
+    .highlight-box {
+      border-left: 3px solid var(--accent);
+      background: rgba(79,142,247,0.07);
+      border-radius: 0 10px 10px 0;
+      padding: 14px 20px;
+      font-size: 0.95rem;
+      color: var(--text);
+      width: 100%;
+      max-width: 820px;
+      margin-top: 16px;
+    }
+
+    /* ── Slide 1: Title ── */
+    #slide-1 {
+      background: radial-gradient(ellipse at 30% 40%, rgba(79,142,247,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 70%, rgba(167,139,250,0.12) 0%, transparent 55%),
+                  var(--bg-dark);
+      text-align: center;
+    }
+    #slide-1 h1 {
+      background: linear-gradient(135deg, #fff 30%, var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .tag-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 28px;
+    }
+
+    /* ── Slide 3: DOM ── */
+    .dom-tree {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      font-family: 'Fira Code', monospace;
+      font-size: 0.88rem;
+      line-height: 2;
+      width: 100%;
+    }
+    .dom-tree .indent-1 { margin-left: 20px; }
+    .dom-tree .indent-2 { margin-left: 40px; }
+    .dom-tree .indent-3 { margin-left: 60px; }
+    .node-tag  { color: #7ee787; }
+    .node-attr { color: #e3b341; }
+    .node-text { color: #a5d6ff; }
+
+    /* ── Framework card extras ── */
+    .fw-card {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .fw-logo {
+      font-size: 2.4rem;
+      margin-bottom: 6px;
+    }
+    .fw-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .fw-desc {
+      font-size: 0.86rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+    .fw-tag {
+      margin-top: 4px;
+    }
+
+    /* ── Async timeline ── */
+    .timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      width: 100%;
+      max-width: 820px;
+    }
+    .timeline-item {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .timeline-line {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .timeline-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-top: 4px;
+    }
+    .timeline-connector {
+      width: 2px;
+      flex: 1;
+      min-height: 32px;
+      background: rgba(79,142,247,0.25);
+    }
+    .timeline-content {
+      padding-bottom: 24px;
+      flex: 1;
+    }
+    .timeline-content h3 { margin-bottom: 4px; }
+
+    /* ── Slide 7: Closing ── */
+    #slide-7 {
+      background: radial-gradient(ellipse at 70% 30%, rgba(167,139,250,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 20% 80%, rgba(52,211,153,0.10) 0%, transparent 55%),
+                  var(--bg-dark);
+      text-align: center;
+    }
+    #slide-7 h1 {
+      background: linear-gradient(135deg, var(--green) 0%, var(--accent) 60%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .resource-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      max-width: 820px;
+      width: 100%;
+      margin-top: 28px;
+    }
+    .resource-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 18px;
+      text-align: left;
+    }
+    .resource-card .icon { font-size: 1.4rem; margin-bottom: 8px; }
+    .resource-card .name { font-size: 0.92rem; font-weight: 700; color: var(--text); }
+    .resource-card .url  { font-size: 0.78rem; color: var(--accent); margin-top: 2px; }
+  </style>
+</head>
+<body>
+
+<div id="progress"></div>
+
+<div id="presentation">
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SLIDE 1: 표지 ━━━━━━━━━━━━━━━━━━ -->
+  <section class="slide active" id="slide-1">
+    <div class="slide-label">Web Development</div>
+    <h1>웹 개발 입문</h1>
+    <p class="subtitle">HTML · CSS · JavaScript 부터 프레임워크까지<br>현대 웹을 만드는 기술의 모든 것</p>
+    <div class="tag-row">
+      <span class="badge badge-blue">HTML/CSS/JS</span>
+      <span class="badge badge-purple">DOM 조작</span>
+      <span class="badge badge-green">이벤트 처리</span>
+      <span class="badge badge-yellow">비동기 프로그래밍</span>
+      <span class="badge badge-pink">프레임워크</span>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SLIDE 2: HTML/CSS/JS 기초 ━━━━━━━━━━━━━━━━━━ -->
+  <section class="slide" id="slide-2">
+    <div class="slide-label">Section 01</div>
+    <h2>HTML · CSS · JavaScript 기초</h2>
+    <div class="card-grid cols-3" style="max-width:960px;">
+      <div class="card">
+        <span class="card-icon">🏗️</span>
+        <h3>HTML</h3>
+        <p>웹 페이지의 <strong>구조</strong>를 정의합니다. 태그(tag)를 사용해 제목, 단락, 이미지, 링크 등 콘텐츠를 마크업합니다.</p>
+        <div style="margin-top:14px;">
+          <pre style="padding:12px 16px;font-size:0.78rem;"><span class="tag">&lt;h1&gt;</span>Hello<span class="tag">&lt;/h1&gt;</span>
+<span class="tag">&lt;p&gt;</span>웹 개발 시작!<span class="tag">&lt;/p&gt;</span>
+<span class="tag">&lt;a</span> <span class="attr">href</span>=<span class="str">"/"</span><span class="tag">&gt;</span>홈<span class="tag">&lt;/a&gt;</span></pre>
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎨</span>
+        <h3>CSS</h3>
+        <p>웹 페이지의 <strong>스타일</strong>을 담당합니다. 색상, 폰트, 레이아웃, 애니메이션 등 시각적 표현을 제어합니다.</p>
+        <div style="margin-top:14px;">
+          <pre style="padding:12px 16px;font-size:0.78rem;"><span class="fn">h1</span> {
+  <span class="attr">color</span>: <span class="str">#4f8ef7</span>;
+  <span class="attr">font-size</span>: <span class="num">2rem</span>;
+}</pre>
+        </div>
+      </div>
+      <div class="card">
+        <span class="card-icon">⚡</span>
+        <h3>JavaScript</h3>
+        <p>웹 페이지에 <strong>동작</strong>을 부여합니다. 사용자 입력 처리, 데이터 조작, 서버 통신 등을 구현합니다.</p>
+        <div style="margin-top:14px;">
+          <pre style="padding:12px 16px;font-size:0.78rem;"><span class="kw">const</span> msg = <span class="str">'안녕!'</span>;
+<span class="fn">alert</span>(msg);
+<span class="cm">// 브라우저에 알림 표시</span></pre>
+        </div>
+      </div>
+    </div>
+    <div class="highlight-box" style="margin-top:20px;text-align:center;">
+      HTML = <strong>뼈대</strong> &nbsp;|&nbsp; CSS = <strong>옷(스타일)</strong> &nbsp;|&nbsp; JavaScript = <strong>근육(동작)</strong>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SLIDE 3: DOM 조작 ━━━━━━━━━━━━━━━━━━ -->
+  <section class="slide" id="slide-3">
+    <div class="slide-label">Section 02</div>
+    <h2>DOM 조작</h2>
+    <div class="two-col">
+      <div>
+        <p style="margin-bottom:16px;">DOM(Document Object Model)은 브라우저가 HTML을 <strong>트리 구조</strong>로 표현한 객체 모델입니다. JavaScript로 DOM을 읽고 수정하면 페이지가 동적으로 변합니다.</p>
+        <div class="dom-tree">
+          <div><span class="node-tag">document</span></div>
+          <div class="indent-1">└── <span class="node-tag">&lt;html&gt;</span></div>
+          <div class="indent-2">├── <span class="node-tag">&lt;head&gt;</span></div>
+          <div class="indent-3">│&nbsp;&nbsp; └── <span class="node-tag">&lt;title&gt;</span> <span class="node-text">"웹"</span></div>
+          <div class="indent-2">└── <span class="node-tag">&lt;body&gt;</span></div>
+          <div class="indent-3">&nbsp;&nbsp;&nbsp;&nbsp;├── <span class="node-tag">&lt;h1</span> <span class="node-attr">id</span>=<span class="node-text">"title"</span><span class="node-tag">&gt;</span></div>
+          <div class="indent-3">&nbsp;&nbsp;&nbsp;&nbsp;└── <span class="node-tag">&lt;p</span> <span class="node-attr">class</span>=<span class="node-text">"desc"</span><span class="node-tag">&gt;</span></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom:12px;">주요 DOM API</h3>
+        <pre><span class="cm">// 요소 선택</span>
+<span class="kw">const</span> el = <span class="fn">document.getElementById</span>(<span class="str">'title'</span>);
+<span class="kw">const</span> all = <span class="fn">document.querySelectorAll</span>(<span class="str">'.item'</span>);
+
+<span class="cm">// 내용 변경</span>
+el.<span class="attr">textContent</span> = <span class="str">'새 제목'</span>;
+el.<span class="attr">innerHTML</span> = <span class="str">'&lt;b&gt;강조&lt;/b&gt;'</span>;
+
+<span class="cm">// 스타일 / 클래스 조작</span>
+el.<span class="attr">style</span>.<span class="attr">color</span> = <span class="str">'blue'</span>;
+el.<span class="attr">classList</span>.<span class="fn">add</span>(<span class="str">'active'</span>);
+
+<span class="cm">// 요소 생성 & 추가</span>
+<span class="kw">const</span> p = <span class="fn">document.createElement</span>(<span class="str">'p'</span>);
+p.<span class="attr">textContent</span> = <span class="str">'새 단락'</span>;
+<span class="fn">document.body.appendChild</span>(p);</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SLIDE 4: 이벤트 처리 ━━━━━━━━━━━━━━━━━━ -->
+  <section class="slide" id="slide-4">
+    <div class="slide-label">Section 03</div>
+    <h2>이벤트 처리</h2>
+    <div class="two-col">
+      <div>
+        <p style="margin-bottom:16px;">이벤트는 브라우저에서 발생하는 <strong>사용자 행동</strong>이나 <strong>시스템 알림</strong>입니다. <code style="background:#0d1117;padding:2px 8px;border-radius:4px;font-size:0.85rem;">addEventListener</code>로 원하는 이벤트에 반응할 수 있습니다.</p>
+        <ul class="styled-list">
+          <li><span class="bullet">🖱</span><div><strong>마우스</strong> — click, dblclick, mouseover, mouseout</div></li>
+          <li><span class="bullet">⌨</span><div><strong>키보드</strong> — keydown, keyup, keypress</div></li>
+          <li><span class="bullet">📝</span><div><strong>폼</strong> — submit, change, input, focus, blur</div></li>
+          <li><span class="bullet">🌐</span><div><strong>윈도우</strong> — load, resize, scroll, DOMContentLoaded</div></li>
+        </ul>
+      </div>
+      <div>
+        <pre><span class="kw">const</span> btn = <span class="fn">document.querySelector</span>(<span class="str">'#btn'</span>);
+
+<span class="cm">// 클릭 이벤트 등록</span>
+btn.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  <span class="fn">console.log</span>(<span class="str">'버튼 클릭!'</span>, e.<span class="attr">target</span>);
+  btn.<span class="attr">textContent</span> = <span class="str">'클릭됨 ✓'</span>;
+});
+
+<span class="cm">// 키보드 이벤트</span>
+<span class="fn">document.addEventListener</span>(<span class="str">'keydown'</span>, (e) => {
+  <span class="kw">if</span> (e.<span class="attr">key</span> === <span class="str">'Enter'</span>) {
+    <span class="fn">console.log</span>(<span class="str">'엔터 키 입력'</span>);
+  }
+});
+
+<span class="cm">// 이벤트 버블링 막기</span>
+el.<span class="fn">addEventListener</span>(<span class="str">'click'</span>, (e) => {
+  e.<span class="fn">stopPropagation</span>();
+  e.<span class="fn">preventDefault</span>(); <span class="cm">// 기본 동작 취소</span>
+});</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SLIDE 5: 비동기 ━━━━━━━━━━━━━━━━━━ -->
+  <section class="slide" id="slide-5">
+    <div class="slide-label">Section 04</div>
+    <h2>비동기 프로그래밍</h2>
+    <div class="two-col">
+      <div>
+        <p style="margin-bottom:18px;">JavaScript는 <strong>싱글 스레드</strong>이지만, 비동기 처리로 서버 요청·파일 읽기 등 오래 걸리는 작업을 <strong>블로킹 없이</strong> 처리합니다.</p>
+        <div class="timeline">
+          <div class="timeline-item">
+            <div class="timeline-line">
+              <div class="timeline-dot" style="background:var(--yellow);"></div>
+              <div class="timeline-connector"></div>
+            </div>
+            <div class="timeline-content">
+              <h3 style="color:var(--yellow);">Callback</h3>
+              <p style="font-size:0.88rem;">함수에 함수를 전달. 중첩이 깊어지면 "콜백 지옥" 발생.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-line">
+              <div class="timeline-dot" style="background:var(--accent);"></div>
+              <div class="timeline-connector"></div>
+            </div>
+            <div class="timeline-content">
+              <h3 style="color:var(--accent);">Promise</h3>
+              <p style="font-size:0.88rem;">비동기 결과를 객체로 표현. <code style="font-size:0.82rem;background:#0d1117;padding:1px 6px;border-radius:4px;">.then().catch()</code> 체이닝 가능.</p>
+            </div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-line">
+              <div class="timeline-dot" style="background:var(--green);"></div>
+            </div>
+            <div class="timeline-content">
+              <h3 style="color:var(--green);">Async / Await</h3>
+              <p style="font-size:0.88rem;">Promise를 동기 코드처럼 읽기 쉽게 작성. 현재 표준.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <pre><span class="cm">// ① Callback</span>
+<span class="fn">setTimeout</span>(() => <span class="fn">console.log</span>(<span class="str">'1초 후'</span>), <span class="num">1000</span>);
+
+<span class="cm">// ② Promise</span>
+<span class="fn">fetch</span>(<span class="str">'/api/data'</span>)
+  .<span class="fn">then</span>(res => res.<span class="fn">json</span>())
+  .<span class="fn">then</span>(data => <span class="fn">console.log</span>(data))
+  .<span class="fn">catch</span>(err => <span class="fn">console.error</span>(err));
+
+<span class="cm">// ③ Async / Await (권장)</span>
+<span class="kw">async function</span> <span class="fn">loadData</span>() {
+  <span class="kw">try</span> {
+    <span class="kw">const</span> res  = <span class="kw">await</span> <span class="fn">fetch</span>(<span class="str">'/api/data'</span>);
+    <span class="kw">const</span> data = <span class="kw">await</span> res.<span class="fn">json</span>();
+    <span class="fn">console.log</span>(data);
+  } <span class="kw">catch</span> (err) {
+    <span class="fn">console.error</span>(<span class="str">'에러:'</span>, err);
+  }
+}
+<span class="fn">loadData</span>();</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SLIDE 6: 프레임워크 ━━━━━━━━━━━━━━━━━━ -->
+  <section class="slide" id="slide-6">
+    <div class="slide-label">Section 05</div>
+    <h2>프레임워크 &amp; 라이브러리</h2>
+    <p style="text-align:center;margin-bottom:24px;max-width:660px;">바닐라 JS만으로도 충분하지만, 규모가 커지면 <strong>프레임워크</strong>가 생산성과 유지보수성을 크게 높여줍니다.</p>
+    <div class="card-grid cols-3" style="max-width:960px;">
+      <div class="card fw-card">
+        <div class="fw-logo">⚛️</div>
+        <div class="fw-name">React</div>
+        <div class="fw-desc">Meta가 만든 UI 라이브러리. 컴포넌트 기반 설계와 Virtual DOM으로 효율적인 렌더링. 생태계가 가장 넓음.</div>
+        <span class="badge badge-blue fw-tag">Library · Meta</span>
+      </div>
+      <div class="card fw-card">
+        <div class="fw-logo">💚</div>
+        <div class="fw-name">Vue.js</div>
+        <div class="fw-desc">가장 배우기 쉬운 프레임워크. 반응형 데이터 바인딩과 단일 파일 컴포넌트(.vue)가 특징.</div>
+        <span class="badge badge-green fw-tag">Framework · 커뮤니티</span>
+      </div>
+      <div class="card fw-card">
+        <div class="fw-logo">🔺</div>
+        <div class="fw-name">Angular</div>
+        <div class="fw-desc">Google이 만든 완전한 프레임워크. TypeScript 기반, 의존성 주입, 대규모 엔터프라이즈 앱에 적합.</div>
+        <span class="badge badge-pink fw-tag">Framework · Google</span>
+      </div>
+    </div>
+    <div class="card-grid cols-2" style="max-width:960px;margin-top:18px;">
+      <div class="card fw-card" style="flex-direction:row;align-items:center;gap:18px;padding:18px 22px;">
+        <div style="font-size:1.8rem;">▲</div>
+        <div>
+          <div class="fw-name">Next.js</div>
+          <div class="fw-desc" style="margin-top:4px;">React 기반 풀스택 프레임워크. SSR·SSG·API 라우트 내장.</div>
+        </div>
+        <span class="badge badge-purple" style="white-space:nowrap;margin-left:auto;">React SSR</span>
+      </div>
+      <div class="card fw-card" style="flex-direction:row;align-items:center;gap:18px;padding:18px 22px;">
+        <div style="font-size:1.8rem;">⚡</div>
+        <div>
+          <div class="fw-name">Svelte</div>
+          <div class="fw-desc" style="margin-top:4px;">컴파일 타임에 최적화. 런타임 오버헤드가 없어 번들 크기 최소.</div>
+        </div>
+        <span class="badge badge-yellow" style="white-space:nowrap;margin-left:auto;">Compiler</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ━━━━━━━━━━━━━━━━━━ SLIDE 7: 마무리 ━━━━━━━━━━━━━━━━━━ -->
+  <section class="slide" id="slide-7">
+    <div class="slide-label">Keep Going</div>
+    <h1>이제 시작하세요!</h1>
+    <p class="subtitle" style="max-width:560px;">기초를 탄탄히 다진 뒤 프레임워크로 나아가세요.<br>꾸준히 만들고, 부수고, 배우는 것이 가장 빠른 길입니다.</p>
+    <div class="resource-grid">
+      <div class="resource-card">
+        <div class="icon">📚</div>
+        <div class="name">MDN Web Docs</div>
+        <div class="url">developer.mozilla.org</div>
+      </div>
+      <div class="resource-card">
+        <div class="icon">🎓</div>
+        <div class="name">freeCodeCamp</div>
+        <div class="url">freecodecamp.org</div>
+      </div>
+      <div class="resource-card">
+        <div class="icon">🏋️</div>
+        <div class="name">JavaScript.info</div>
+        <div class="url">javascript.info</div>
+      </div>
+      <div class="resource-card">
+        <div class="icon">🎮</div>
+        <div class="name">CSS Battle</div>
+        <div class="url">cssbattle.dev</div>
+      </div>
+      <div class="resource-card">
+        <div class="icon">💻</div>
+        <div class="name">GitHub</div>
+        <div class="url">직접 만든 프로젝트 공유</div>
+      </div>
+      <div class="resource-card">
+        <div class="icon">🌐</div>
+        <div class="name">코드잇 / 인프런</div>
+        <div class="url">한국어 강의 플랫폼</div>
+      </div>
+    </div>
+  </section>
+
+</div><!-- /presentation -->
+
+<!-- Navigation buttons -->
+<button class="nav-btn" id="prev-btn" title="이전 슬라이드">&#8592;</button>
+<button class="nav-btn" id="next-btn" title="다음 슬라이드">&#8594;</button>
+
+<!-- Dot indicators -->
+<div id="dots"></div>
+
+<!-- Slide counter -->
+<div id="slide-counter"></div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total   = slides.length;
+  let current   = 0;
+  let animating = false;
+
+  const progressBar  = document.getElementById('progress');
+  const dotsContainer= document.getElementById('dots');
+  const counter      = document.getElementById('slide-counter');
+
+  /* Build dots */
+  slides.forEach((_, i) => {
+    const d = document.createElement('button');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.setAttribute('aria-label', `슬라이드 ${i + 1}`);
+    d.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(d);
+  });
+
+  function updateUI() {
+    const dots = dotsContainer.querySelectorAll('.dot');
+    dots.forEach((d, i) => d.classList.toggle('active', i === current));
+    progressBar.style.width = ((current + 1) / total * 100) + '%';
+    counter.textContent = `${current + 1} / ${total}`;
+  }
+
+  function goTo(index) {
+    if (animating || index === current || index < 0 || index >= total) return;
+    animating = true;
+
+    const from = slides[current];
+    const to   = slides[index];
+    const dir  = index > current ? 1 : -1;
+
+    /* Set initial out-of-view position for incoming slide */
+    to.style.transform = `translateX(${dir * 60}px)`;
+    to.style.opacity   = '0';
+    to.style.transition = 'none';
+    to.style.pointerEvents = 'none';
+
+    /* Force reflow */
+    to.getBoundingClientRect();
+
+    to.style.transition = '';
+
+    /* Animate both slides */
+    requestAnimationFrame(() => {
+      from.style.opacity   = '0';
+      from.style.transform = `translateX(${-dir * 60}px)`;
+      to.style.opacity     = '1';
+      to.style.transform   = 'translateX(0)';
+    });
+
+    from.classList.remove('active');
+
+    setTimeout(() => {
+      from.style.opacity   = '';
+      from.style.transform = '';
+      to.style.opacity     = '';
+      to.style.transform   = '';
+      to.classList.add('active');
+      to.style.pointerEvents = '';
+      current = index;
+      updateUI();
+      animating = false;
+    }, 460);
+  }
+
+  document.getElementById('prev-btn').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('next-btn').addEventListener('click', () => goTo(current + 1));
+
+  /* Keyboard navigation */
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ')  { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                     { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End')  goTo(total - 1);
+  });
+
+  /* Touch / swipe support */
+  let touchStartX = 0;
+  document.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+  document.addEventListener('touchend',   e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) goTo(current + (dx < 0 ? 1 : -1));
+  }, { passive: true });
+
+  /* Initial UI */
+  updateUI();
+</script>
+</body>
+</html>

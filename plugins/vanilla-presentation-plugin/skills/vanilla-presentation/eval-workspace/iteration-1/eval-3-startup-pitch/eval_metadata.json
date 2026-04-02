@@ -1,0 +1,51 @@
+{
+  "eval_id": 3,
+  "eval_name": "startup-pitch",
+  "prompt": "\uc2a4\ud0c0\ud2b8\uc5c5 \ud53c\uce6d \uc2ac\ub77c\uc774\ub4dc \ub9cc\ub4e4\uc5b4\uc918. \ud68c\uc0ac\uba85\uc740 'DataFlow AI', AI \uae30\ubc18 \ub370\uc774\ud130 \ubd84\uc11d \uc194\ub8e8\uc158 \uc2a4\ud0c0\ud2b8\uc5c5. \uc2ac\ub77c\uc774\ub4dc \uad6c\uc131: \ud0c0\uc774\ud2c0 \u2192 \ubb38\uc81c \u2192 \uc194\ub8e8\uc158 \u2192 \uae30\uc220 \uc2a4\ud0dd \u2192 \uc2dc\uc7a5 \uaddc\ubaa8(\uc22b\uc790 \uce74\ub4dc\ub85c) \u2192 \ud300 \uc18c\uac1c \u2192 \ud22c\uc790 \uc720\uce58 \ub9c8\ubb34\ub9ac. \ucd1d 8\uc7a5.",
+  "assertions": [
+    {
+      "id": "single-file",
+      "description": "Output is a single .html file"
+    },
+    {
+      "id": "slide-count",
+      "description": "Has 8 slides"
+    },
+    {
+      "id": "has-result-cards",
+      "description": "result-card layout used for market size numbers"
+    },
+    {
+      "id": "has-tech-badges",
+      "description": "tech-badge or tech-grid for tech stack"
+    },
+    {
+      "id": "has-fragments",
+      "description": "Fragment system used"
+    },
+    {
+      "id": "has-speaker-notes",
+      "description": "Speaker notes JSON present"
+    },
+    {
+      "id": "has-themes",
+      "description": "data-theme attributes on slides"
+    },
+    {
+      "id": "animation-lock",
+      "description": "isAnimating flag present"
+    },
+    {
+      "id": "touch-swipe",
+      "description": "Touch swipe support"
+    },
+    {
+      "id": "hash-sync",
+      "description": "URL hash sync"
+    },
+    {
+      "id": "dataflow-ai-content",
+      "description": "DataFlow AI company name present in content"
+    }
+  ]
+}

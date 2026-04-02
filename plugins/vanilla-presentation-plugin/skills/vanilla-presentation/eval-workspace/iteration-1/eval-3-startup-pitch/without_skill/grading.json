@@ -1,0 +1,61 @@
+{
+  "run_id": "eval-3-without_skill",
+  "pass_rate": 0.2727272727272727,
+  "expectations": [
+    {
+      "text": "single-file",
+      "passed": true,
+      "evidence": "No forbidden patterns found"
+    },
+    {
+      "text": "slide-count",
+      "passed": false,
+      "evidence": "Found 0 matches (expected 7-9)"
+    },
+    {
+      "text": "has-result-cards",
+      "passed": false,
+      "evidence": "Pattern 'result-card' not found"
+    },
+    {
+      "text": "has-tech-badges",
+      "passed": false,
+      "evidence": "Pattern 'tech-badge' not found"
+    },
+    {
+      "text": "has-fragments",
+      "passed": false,
+      "evidence": "Pattern 'data-step=' not found"
+    },
+    {
+      "text": "has-speaker-notes",
+      "passed": false,
+      "evidence": "Pattern 'speakerNotes' not found"
+    },
+    {
+      "text": "has-themes",
+      "passed": false,
+      "evidence": "Pattern 'data-theme=' not found"
+    },
+    {
+      "text": "animation-lock",
+      "passed": false,
+      "evidence": "Pattern 'isAnimating' not found"
+    },
+    {
+      "text": "touch-swipe",
+      "passed": true,
+      "evidence": "Found 1 matches"
+    },
+    {
+      "text": "hash-sync",
+      "passed": false,
+      "evidence": "Pattern 'pushState' not found"
+    },
+    {
+      "text": "dataflow-ai-content",
+      "passed": true,
+      "evidence": "Found 4 matches"
+    }
+  ]
+}

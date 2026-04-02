@@ -1,0 +1,32 @@
+{
+  "skill_name": "vanilla-presentation",
+  "iteration": 1,
+  "configurations": [
+    {
+      "name": "with_skill",
+      "evals": [
+        {"eval_id": 1, "eval_name": "web-dev-intro",  "pass_rate": 1.0, "passed": 10, "total": 10},
+        {"eval_id": 2, "eval_name": "react-vs-vue",   "pass_rate": 1.0, "passed": 9,  "total": 9},
+        {"eval_id": 3, "eval_name": "startup-pitch",  "pass_rate": 1.0, "passed": 11, "total": 11}
+      ],
+      "mean_pass_rate": 1.0,
+      "stddev": 0.0
+    },
+    {
+      "name": "without_skill",
+      "evals": [
+        {"eval_id": 1, "eval_name": "web-dev-intro",  "pass_rate": 0.40, "passed": 4,  "total": 10},
+        {"eval_id": 2, "eval_name": "react-vs-vue",   "pass_rate": 0.33, "passed": 3,  "total": 9},
+        {"eval_id": 3, "eval_name": "startup-pitch",  "pass_rate": 0.27, "passed": 3,  "total": 11}
+      ],
+      "mean_pass_rate": 0.333,
+      "stddev": 0.054
+    }
+  ],
+  "delta": {
+    "mean_pass_rate": "+66.7%",
+    "eval_1": "+60%",
+    "eval_2": "+67%",
+    "eval_3": "+73%"
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "run_id": "eval-1-without_skill",
+  "pass_rate": 0.4,
+  "expectations": [
+    {
+      "text": "single-file",
+      "passed": true,
+      "evidence": "No forbidden patterns found"
+    },
+    {
+      "text": "slide-count",
+      "passed": true,
+      "evidence": "Found 7 matches (expected 6-8)"
+    },
+    {
+      "text": "has-fragments",
+      "passed": false,
+      "evidence": "Pattern 'data-step=' not found"
+    },
+    {
+      "text": "has-navigation-js",
+      "passed": true,
+      "evidence": "Found 3 matches"
+    },
+    {
+      "text": "has-progress-bar",
+      "passed": false,
+      "evidence": "Pattern 'progressFill' not found"
+    },
+    {
+      "text": "has-speaker-notes",
+      "passed": false,
+      "evidence": "Pattern 'speakerNotes' not found"
+    },
+    {
+      "text": "has-themes",
+      "passed": false,
+      "evidence": "Pattern 'data-theme=' not found"
+    },
+    {
+      "text": "animation-lock",
+      "passed": false,
+      "evidence": "Pattern 'isAnimating' not found"
+    },
+    {
+      "text": "touch-swipe",
+      "passed": true,
+      "evidence": "Found 1 matches"
+    },
+    {
+      "text": "hash-sync",
+      "passed": false,
+      "evidence": "Pattern 'pushState' not found"
+    }
+  ]
+}

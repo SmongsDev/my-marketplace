@@ -1,0 +1,1000 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>React vs Vue — A Comprehensive Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --accent:        #C6A55C;
+      --accent-bright: #E8C97A;
+      --text-primary:  #F0EAD6;
+      --text-muted:    rgba(240,234,214,0.8);
+      --text-dim:      rgba(240,234,214,0.45);
+      --border:        rgba(198,165,92,0.2);
+      --surface:       rgba(198,165,92,0.06);
+      --react-blue:    #61DAFB;
+      --vue-green:     #42B883;
+    }
+
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: 'Inter', sans-serif;
+      background: #0d0d0d;
+    }
+
+    .presentation {
+      display: flex; flex-direction: column;
+      width: 100vw; height: 100vh;
+    }
+
+    /* ── progress bar ── */
+    .progress-bar {
+      height: 3px; background: rgba(255,255,255,0.08); flex-shrink: 0;
+    }
+    .progress-fill {
+      height: 100%; width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-bright));
+      transition: width 0.4s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    /* ── slide container ── */
+    .slide-container {
+      position: relative; flex: 1; overflow: hidden;
+      contain: layout style paint;
+    }
+
+    /* ── themes ── */
+    .slide[data-theme="amber"]   { background: radial-gradient(ellipse at 30% 20%, #2a1f08 0%, #140f04 55%, #0c0903 100%); }
+    .slide[data-theme="navy"]    { background: radial-gradient(ellipse at 30% 20%, #071428 0%, #030a18 55%, #020710 100%); }
+    .slide[data-theme="teal"]    { background: radial-gradient(ellipse at 30% 20%, #062020 0%, #031414 55%, #020c0c 100%); }
+    .slide[data-theme="crimson"] { background: radial-gradient(ellipse at 30% 20%, #200808 0%, #130404 55%, #0c0303 100%); }
+    .slide[data-theme="sienna"]  { background: radial-gradient(ellipse at 30% 20%, #241208 0%, #160b04 55%, #0e0603 100%); }
+    .slide[data-theme="violet"]  { background: radial-gradient(ellipse at 30% 20%, #160c28 0%, #0d0618 55%, #080310 100%); }
+
+    /* ── slide base ── */
+    .slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; z-index: 0;
+      transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1),
+                  transform 0.55s cubic-bezier(0.4,0,0.2,1);
+      transform: translateX(60px) scale(0.98);
+      padding: 36px 48px;
+    }
+    .slide.is-active { opacity: 1; pointer-events: auto; z-index: 10; transform: translateX(0) scale(1); }
+    .slide.is-exit   { opacity: 0; z-index: 5; }
+
+    /* data-layout="list" → left-align body */
+    .slide[data-layout="list"] .slide-body { align-items: flex-start; text-align: left; }
+    .slide[data-layout="list"] h2 { text-align: left; }
+
+    /* ── slide body ── */
+    .slide-body {
+      width: 100%; max-width: 1000px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 14px;
+    }
+
+    /* ── typography ── */
+    .slide h1 {
+      font-size: clamp(24px, 5vw, 50px); font-weight: 700; text-align: center; line-height: 1.15;
+      background: linear-gradient(135deg, #FFFBEF 30%, #E8C97A 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 2px 12px rgba(198,165,92,0.35));
+    }
+    .slide h2 {
+      font-size: clamp(20px, 3.6vw, 38px); color: var(--text-primary);
+      font-weight: 600; text-align: center;
+    }
+    .slide h3 { font-size: clamp(15px, 2.2vw, 22px); color: var(--accent); font-weight: 600; }
+    .slide p  { font-size: clamp(13px, 2vw, 18px); line-height: 1.75; color: var(--text-muted); }
+
+    .tag {
+      font-size: clamp(10px, 1.2vw, 13px); font-weight: 600; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--accent);
+      border: 1px solid var(--border); border-radius: 4px; padding: 4px 12px;
+    }
+
+    .meta-info {
+      display: flex; gap: 28px; flex-wrap: wrap; justify-content: center;
+      font-size: clamp(12px, 1.5vw, 15px); color: var(--text-dim);
+      margin-top: 4px;
+    }
+    .meta-info strong { color: var(--accent); }
+
+    /* ── fragment system ── */
+    [data-step] {
+      opacity: 0; transform: translateY(16px);
+      transition: opacity 0.45s ease, transform 0.45s ease;
+      pointer-events: none;
+    }
+    [data-step].revealed {
+      opacity: 1; transform: translateY(0); pointer-events: auto;
+      transition-delay: calc(var(--si, 0) * 0.07s);
+    }
+
+    /* ── bullet lists ── */
+    .slide ul { width: 100%; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .slide ul li {
+      font-size: clamp(13px, 2vw, 17px); color: var(--text-muted); line-height: 1.6;
+      padding-left: 24px; position: relative;
+    }
+    .slide ul li::before {
+      content: '▸'; position: absolute; left: 0;
+      color: var(--accent); font-size: 0.85em;
+    }
+    .slide ul li strong { color: var(--accent-bright); }
+
+    /* ── two-column layout ── */
+    .two-col {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 24px; width: 100%; align-items: start;
+    }
+
+    /* ── code blocks ── */
+    pre {
+      background: rgba(0,0,0,0.45);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px 22px;
+      overflow-x: auto;
+      font-family: 'Fira Code', monospace;
+      font-size: clamp(10px, 1.4vw, 13px);
+      line-height: 1.65;
+      color: #d4d4d4;
+    }
+    pre .kw  { color: #569cd6; }
+    pre .fn  { color: #dcdcaa; }
+    pre .str { color: #ce9178; }
+    pre .cmt { color: #6a9955; }
+    pre .jsx { color: #4ec9b0; }
+    pre .prop { color: #9cdcfe; }
+    pre .num  { color: #b5cea8; }
+    pre .tag-name { color: #4ec9b0; }
+    pre .attr { color: #9cdcfe; }
+
+    .code-desc {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+
+    .highlight-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 6px; padding: 12px 16px;
+      font-size: clamp(12px, 1.6vw, 15px); color: var(--text-muted); line-height: 1.6;
+    }
+    .highlight-box strong { color: var(--accent-bright); display: block; margin-bottom: 3px; }
+
+    /* ── pros/cons cards ── */
+    .pros-cons-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 20px; width: 100%;
+    }
+    .pc-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 20px;
+    }
+    .pc-card .pc-title {
+      font-size: clamp(13px, 1.6vw, 16px); font-weight: 700;
+      margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+    }
+    .pc-card.pros .pc-title { color: #6ee7b7; }
+    .pc-card.cons .pc-title { color: #fca5a5; }
+    .pc-card ul { gap: 7px; }
+    .pc-card ul li { font-size: clamp(11px, 1.5vw, 14px); color: var(--text-muted); }
+    .pc-card.pros ul li::before { color: #6ee7b7; }
+    .pc-card.cons ul li::before { color: #fca5a5; }
+
+    /* ── comparison table ── */
+    .comp-table-wrap { width: 100%; overflow-x: auto; }
+    .comp-table {
+      width: 100%; border-collapse: collapse;
+      font-size: clamp(11px, 1.5vw, 14px);
+    }
+    .comp-table th, .comp-table td {
+      padding: 10px 16px; text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .comp-table thead th {
+      font-size: clamp(12px, 1.6vw, 15px); font-weight: 700;
+      background: rgba(0,0,0,0.3);
+    }
+    .comp-table thead th:nth-child(2) { color: var(--react-blue); }
+    .comp-table thead th:nth-child(3) { color: var(--vue-green); }
+    .comp-table td:first-child { color: var(--accent); font-weight: 600; }
+    .comp-table td:nth-child(2) { color: var(--text-muted); }
+    .comp-table td:nth-child(3) { color: var(--text-muted); }
+    .comp-table tbody tr:hover { background: var(--surface); }
+    .badge {
+      display: inline-block; padding: 2px 8px; border-radius: 4px;
+      font-size: 0.85em; font-weight: 600;
+    }
+    .badge-react { background: rgba(97,218,251,0.15); color: var(--react-blue); }
+    .badge-vue   { background: rgba(66,184,131,0.15); color: var(--vue-green); }
+    .badge-both  { background: rgba(198,165,92,0.15); color: var(--accent); }
+
+    /* ── when to use cards ── */
+    .use-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 20px; width: 100%;
+    }
+    .use-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px 20px;
+    }
+    .use-card .use-title {
+      font-size: clamp(13px, 1.8vw, 17px); font-weight: 700; margin-bottom: 10px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .use-card.react-card .use-title { color: var(--react-blue); }
+    .use-card.vue-card   .use-title { color: var(--vue-green); }
+    .use-card ul { gap: 7px; }
+    .use-card ul li { font-size: clamp(11px, 1.5vw, 14px); color: var(--text-muted); }
+    .use-card.react-card ul li::before { color: var(--react-blue); }
+    .use-card.vue-card   ul li::before { color: var(--vue-green); }
+
+    /* ── Q&A wrap ── */
+    .qa-wrap {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 20px; text-align: center;
+    }
+    .qa-big { font-size: clamp(48px, 8vw, 80px); line-height: 1; }
+    .qa-wrap h1 { margin: 0; }
+    .contact-row {
+      display: flex; gap: 24px; flex-wrap: wrap; justify-content: center;
+      margin-top: 8px;
+    }
+    .contact-item {
+      font-size: clamp(12px, 1.6vw, 15px); color: var(--text-muted);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 18px;
+    }
+    .contact-item strong { color: var(--accent); }
+
+    /* ── framework logos / name tags ── */
+    .fw-title {
+      display: flex; align-items: center; gap: 10px;
+    }
+    .fw-dot {
+      width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0;
+    }
+    .fw-dot.react { background: var(--react-blue); box-shadow: 0 0 8px rgba(97,218,251,0.5); }
+    .fw-dot.vue   { background: var(--vue-green);  box-shadow: 0 0 8px rgba(66,184,131,0.5); }
+
+    /* ── section subtitle ── */
+    .section-sub {
+      font-size: clamp(13px, 1.8vw, 17px); color: var(--text-dim);
+      text-align: center; max-width: 700px;
+    }
+
+    /* ── bottom bar ── */
+    .bottom-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 16px; flex-shrink: 0;
+      background: rgba(0,0,0,0.6); border-top: 1px solid var(--border);
+    }
+    .nav-btn {
+      background: var(--surface); border: 1px solid var(--border);
+      color: var(--text-muted); border-radius: 6px;
+      width: 32px; height: 32px; font-size: 18px; line-height: 1;
+      cursor: pointer; transition: background 0.2s, color 0.2s;
+    }
+    .nav-btn:hover:not(:disabled) { background: rgba(198,165,92,0.15); color: var(--accent); }
+    .nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .indicators { display: flex; gap: 6px; align-items: center; }
+    .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: rgba(255,255,255,0.2); border: none; cursor: pointer;
+      transition: background 0.2s, transform 0.2s; padding: 0;
+    }
+    .dot.active { background: var(--accent); transform: scale(1.3); }
+
+    .slide-counter {
+      font-size: 13px; color: var(--text-dim); font-variant-numeric: tabular-nums;
+      margin-left: 4px;
+    }
+
+    .transition-label {
+      font-size: 11px; color: var(--text-dim); margin-left: 4px;
+      text-transform: uppercase; letter-spacing: 0.06em; cursor: pointer;
+      user-select: none;
+    }
+
+    .hint {
+      display: flex; gap: 12px; flex-wrap: wrap;
+      font-size: 11px; color: var(--text-dim); margin-left: auto;
+    }
+    kbd {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 3px; padding: 1px 5px; font-size: 10px;
+      font-family: inherit; color: var(--text-muted);
+    }
+
+    .fs-btn {
+      background: none; border: none; color: var(--text-dim);
+      cursor: pointer; font-size: 18px; line-height: 1;
+      padding: 4px; transition: color 0.2s;
+    }
+    .fs-btn:hover { color: var(--accent); }
+
+    /* ── toast ── */
+    .toast {
+      position: fixed; bottom: 64px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.85); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 20px; font-size: 14px; color: var(--accent);
+      opacity: 0; pointer-events: none; z-index: 9999;
+      transition: opacity 0.3s;
+    }
+    .toast.show { opacity: 1; }
+
+    /* ── speaker notes popup ── */
+    /* (opened in new window via JS) */
+
+    @media (max-width: 600px) {
+      .hint { display: none; }
+      .two-col { grid-template-columns: 1fr; }
+      .pros-cons-grid { grid-template-columns: 1fr; }
+      .use-grid { grid-template-columns: 1fr; }
+      .comp-table th, .comp-table td { padding: 7px 10px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="presentation">
+
+  <!-- ══════════════════════════════════════════
+       PROGRESS BAR
+  ══════════════════════════════════════════ -->
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <!-- ══════════════════════════════════════════
+       SLIDE CONTAINER
+  ══════════════════════════════════════════ -->
+  <div class="slide-container" id="slideContainer">
+
+    <!-- ───────────────────────────────────────
+         SLIDE 1 — TITLE
+    ─────────────────────────────────────────── -->
+    <section class="slide is-active" data-index="0" data-theme="violet">
+      <div class="slide-body">
+        <div class="tag">Frontend Frameworks</div>
+        <h1>React vs Vue</h1>
+        <p data-step="1" style="--si:0">A deep-dive comparison of the two most popular<br>JavaScript UI frameworks — architecture, DX, and real-world fit.</p>
+        <div class="meta-info" data-step="2" style="--si:1">
+          <span><strong>Topic</strong>&ensp;Framework Comparison</span>
+          <span><strong>Date</strong>&ensp;March 31, 2026</span>
+          <span><strong>Slides</strong>&ensp;7</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────
+         SLIDE 2 — OVERVIEW
+    ─────────────────────────────────────────── -->
+    <section class="slide" data-index="1" data-theme="navy" data-layout="list">
+      <div class="slide-body">
+        <h2>Overview</h2>
+        <p class="section-sub" style="text-align:left; margin-bottom:6px;">What are React and Vue, and why do we compare them?</p>
+
+        <ul style="margin-top: 10px;">
+          <li data-step="1" style="--si:0">
+            <strong>React</strong> — Released by Meta in 2013. A UI library focused on composable components and a one-way data flow. Massive ecosystem; industry standard at scale.
+          </li>
+          <li data-step="2" style="--si:1">
+            <strong>Vue</strong> — Released by Evan You in 2014. A progressive framework with an approachable, batteries-included design. Beloved for its gentle learning curve.
+          </li>
+          <li data-step="3" style="--si:2">
+            Both use a <strong>virtual DOM</strong>, component-based architecture, and single-file component patterns — yet they differ meaningfully in philosophy and syntax.
+          </li>
+          <li data-step="4" style="--si:3">
+            <strong>npm downloads (2025):</strong> React ~22M/week vs Vue ~4.5M/week — React leads in adoption, but Vue dominates in Asia and among smaller teams.
+          </li>
+          <li data-step="5" style="--si:4">
+            <strong>Goal of this deck:</strong> Help you choose the right tool for your project, team, and constraints.
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────
+         SLIDE 3 — REACT PROS/CONS + CODE
+    ─────────────────────────────────────────── -->
+    <section class="slide" data-index="2" data-theme="teal">
+      <div class="slide-body">
+        <h2 style="display:flex;align-items:center;gap:10px;">
+          <span class="fw-dot react"></span> React — Strengths &amp; Weaknesses
+        </h2>
+
+        <div class="two-col" style="margin-top:10px;">
+          <!-- code panel -->
+          <pre><code><span class="cmt">// React functional component (v18)</span>
+<span class="kw">import</span> { <span class="fn">useState</span>, <span class="fn">useEffect</span> } <span class="kw">from</span> <span class="str">'react'</span>;
+
+<span class="kw">function</span> <span class="fn">Counter</span>({ <span class="prop">label</span> }) {
+  <span class="kw">const</span> [<span class="prop">count</span>, <span class="fn">setCount</span>] = <span class="fn">useState</span>(<span class="num">0</span>);
+
+  <span class="fn">useEffect</span>(() => {
+    document.title = <span class="str">`</span><span class="prop">${label}</span><span class="str">: </span><span class="prop">${count}</span><span class="str">`</span>;
+  }, [<span class="prop">count</span>, <span class="prop">label</span>]);
+
+  <span class="kw">return</span> (
+    <span class="jsx">&lt;div</span> <span class="attr">className</span>=<span class="str">"card"</span><span class="jsx">&gt;</span>
+      <span class="jsx">&lt;p&gt;</span>{<span class="prop">label</span>}: {<span class="prop">count</span>}<span class="jsx">&lt;/p&gt;</span>
+      <span class="jsx">&lt;button</span> <span class="attr">onClick</span>={() => <span class="fn">setCount</span>(<span class="prop">c</span> => <span class="prop">c</span> + <span class="num">1</span>)}<span class="jsx">&gt;</span>
+        Increment
+      <span class="jsx">&lt;/button&gt;</span>
+    <span class="jsx">&lt;/div&gt;</span>
+  );
+}</code></pre>
+
+          <!-- pros/cons panel -->
+          <div class="pros-cons-grid" style="grid-template-columns:1fr; gap:12px;">
+            <div class="pc-card pros" data-step="1" style="--si:0">
+              <div class="pc-title">✅ Pros</div>
+              <ul>
+                <li>Massive ecosystem &amp; community</li>
+                <li>Extremely flexible — use any library</li>
+                <li>JSX keeps logic &amp; markup co-located</li>
+                <li>Concurrent Mode &amp; Server Components</li>
+                <li>Huge job market demand</li>
+              </ul>
+            </div>
+            <div class="pc-card cons" data-step="2" style="--si:1">
+              <div class="pc-title">❌ Cons</div>
+              <ul>
+                <li>Steeper initial learning curve (hooks)</li>
+                <li>No official router/state — choose your own</li>
+                <li>JSX can feel verbose for templates</li>
+                <li>Breaking API changes between major versions</li>
+                <li>Bundle size without tree-shaking care</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────
+         SLIDE 4 — VUE PROS/CONS + CODE
+    ─────────────────────────────────────────── -->
+    <section class="slide" data-index="3" data-theme="sienna">
+      <div class="slide-body">
+        <h2 style="display:flex;align-items:center;gap:10px;">
+          <span class="fw-dot vue"></span> Vue — Strengths &amp; Weaknesses
+        </h2>
+
+        <div class="two-col" style="margin-top:10px;">
+          <!-- code panel -->
+          <pre><code><span class="cmt">&lt;!-- Vue 3 — Composition API (SFC) --&gt;</span>
+<span class="jsx">&lt;script</span> <span class="attr">setup</span><span class="jsx">&gt;</span>
+<span class="kw">import</span> { <span class="fn">ref</span>, <span class="fn">watchEffect</span> } <span class="kw">from</span> <span class="str">'vue'</span>;
+
+<span class="kw">const</span> <span class="prop">props</span> = <span class="fn">defineProps</span>({ <span class="prop">label</span>: String });
+<span class="kw">const</span> <span class="prop">count</span> = <span class="fn">ref</span>(<span class="num">0</span>);
+
+<span class="fn">watchEffect</span>(() => {
+  document.title = <span class="str">`</span><span class="prop">${props.label}</span><span class="str">: </span><span class="prop">${count.value}</span><span class="str">`</span>;
+});
+<span class="jsx">&lt;/script&gt;</span>
+
+<span class="jsx">&lt;template&gt;</span>
+  <span class="jsx">&lt;div</span> <span class="attr">class</span>=<span class="str">"card"</span><span class="jsx">&gt;</span>
+    <span class="jsx">&lt;p&gt;</span>{{ <span class="prop">label</span> }}: {{ <span class="prop">count</span> }}<span class="jsx">&lt;/p&gt;</span>
+    <span class="jsx">&lt;button</span> <span class="attr">@click</span>=<span class="str">"count++"</span><span class="jsx">&gt;</span>Increment<span class="jsx">&lt;/button&gt;</span>
+  <span class="jsx">&lt;/div&gt;</span>
+<span class="jsx">&lt;/template&gt;</span></code></pre>
+
+          <!-- pros/cons panel -->
+          <div class="pros-cons-grid" style="grid-template-columns:1fr; gap:12px;">
+            <div class="pc-card pros" data-step="1" style="--si:0">
+              <div class="pc-title">✅ Pros</div>
+              <ul>
+                <li>Gentle learning curve — HTML-first templates</li>
+                <li>Official router (Vue Router) + state (Pinia)</li>
+                <li>Single File Components are self-contained</li>
+                <li>Excellent reactivity system (Proxy-based)</li>
+                <li>Smaller bundle size by default</li>
+              </ul>
+            </div>
+            <div class="pc-card cons" data-step="2" style="--si:1">
+              <div class="pc-title">❌ Cons</div>
+              <ul>
+                <li>Smaller ecosystem than React</li>
+                <li>Fewer enterprise case studies</li>
+                <li>Options API vs Composition API confusion</li>
+                <li>Lower Western job market demand</li>
+                <li>Major version migrations can be painful (v2→v3)</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────
+         SLIDE 5 — SIDE-BY-SIDE COMPARISON TABLE
+    ─────────────────────────────────────────── -->
+    <section class="slide" data-index="4" data-theme="navy">
+      <div class="slide-body">
+        <h2>Side-by-Side Comparison</h2>
+
+        <div class="comp-table-wrap" style="margin-top:12px;" data-step="1" style="--si:0">
+          <table class="comp-table">
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>⚛ React</th>
+                <th>💚 Vue</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Maintained by</td>
+                <td>Meta (Facebook)</td>
+                <td>Evan You + community</td>
+              </tr>
+              <tr>
+                <td>Template syntax</td>
+                <td>JSX (JS expressions)</td>
+                <td>HTML templates + directives</td>
+              </tr>
+              <tr>
+                <td>State management</td>
+                <td>useState / useReducer / Zustand / Redux</td>
+                <td>ref / reactive / Pinia (official)</td>
+              </tr>
+              <tr>
+                <td>Routing</td>
+                <td>React Router (3rd-party)</td>
+                <td>Vue Router (official)</td>
+              </tr>
+              <tr>
+                <td>Reactivity model</td>
+                <td>Immutable state + re-render diffing</td>
+                <td>Mutable Proxy-based reactivity</td>
+              </tr>
+              <tr>
+                <td>Learning curve</td>
+                <td><span class="badge badge-react">Moderate–High</span></td>
+                <td><span class="badge badge-vue">Low–Moderate</span></td>
+              </tr>
+              <tr>
+                <td>SSR framework</td>
+                <td>Next.js</td>
+                <td>Nuxt.js</td>
+              </tr>
+              <tr>
+                <td>TypeScript support</td>
+                <td><span class="badge badge-both">Excellent</span></td>
+                <td><span class="badge badge-both">Excellent</span></td>
+              </tr>
+              <tr>
+                <td>Weekly npm downloads</td>
+                <td>~22M</td>
+                <td>~4.5M</td>
+              </tr>
+              <tr>
+                <td>GitHub stars</td>
+                <td>~225K</td>
+                <td>~207K</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────
+         SLIDE 6 — WHEN TO CHOOSE WHICH
+    ─────────────────────────────────────────── -->
+    <section class="slide" data-index="5" data-theme="crimson" data-layout="list">
+      <div class="slide-body">
+        <h2>When to Choose Which?</h2>
+        <p class="section-sub" style="text-align:left; margin-bottom:4px;">Context matters more than preference.</p>
+
+        <div class="use-grid" style="margin-top: 10px;">
+          <div class="use-card react-card" data-step="1" style="--si:0">
+            <div class="use-title">⚛ Choose React when…</div>
+            <ul>
+              <li>Building large-scale enterprise apps</li>
+              <li>Team has strong JavaScript / JSX experience</li>
+              <li>Ecosystem flexibility is critical</li>
+              <li>Hiring from a large talent pool</li>
+              <li>You need React Native for mobile</li>
+              <li>Using Next.js for full-stack SSR/SSG</li>
+            </ul>
+          </div>
+          <div class="use-card vue-card" data-step="2" style="--si:1">
+            <div class="use-title">💚 Choose Vue when…</div>
+            <ul>
+              <li>Team has HTML/CSS-first background</li>
+              <li>Rapid prototyping is the priority</li>
+              <li>You want an all-in-one official solution</li>
+              <li>Building smaller-to-medium-sized apps</li>
+              <li>Progressive adoption into an existing project</li>
+              <li>Using Nuxt.js for full-stack SSR/SSG</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="highlight-box" data-step="3" style="--si:2; margin-top:12px; width:100%;">
+          <strong>The honest answer:</strong>
+          Both frameworks are production-ready and excellent. The best choice is the one your team is already skilled in — or the one that best fits your hiring pipeline. You rarely go wrong with either.
+        </div>
+      </div>
+    </section>
+
+    <!-- ───────────────────────────────────────
+         SLIDE 7 — CLOSING Q&A
+    ─────────────────────────────────────────── -->
+    <section class="slide" data-index="6" data-theme="amber">
+      <div class="slide-body">
+        <div class="qa-wrap">
+          <div class="qa-big" data-step="1" style="--si:0">🙋</div>
+          <h1>Q &amp; A</h1>
+          <p data-step="2" style="--si:1">Thank you for attending! Any questions about React, Vue, or how to make the right choice for your project?</p>
+          <div class="contact-row" data-step="3" style="--si:2">
+            <span class="contact-item">⚛ <strong>React Docs</strong>&ensp;react.dev</span>
+            <span class="contact-item">💚 <strong>Vue Docs</strong>&ensp;vuejs.org</span>
+            <span class="contact-item">📊 <strong>State of JS</strong>&ensp;stateofjs.com</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div><!-- /slide-container -->
+
+  <!-- ══════════════════════════════════════════
+       BOTTOM BAR
+  ══════════════════════════════════════════ -->
+  <div class="bottom-bar">
+    <button class="nav-btn" id="btnPrev" disabled aria-label="Previous slide">‹</button>
+    <div class="indicators" id="indicators"></div>
+    <span class="slide-counter">
+      <span id="cntCur">1</span>&thinsp;/&thinsp;<span id="cntTot"></span>
+    </span>
+    <button class="nav-btn" id="btnNext" aria-label="Next slide">›</button>
+    <span class="transition-label" id="transLabel" title="Press T to cycle transitions">slide</span>
+    <div class="hint" id="hintBar">
+      <span><kbd>→</kbd> Next</span>
+      <span><kbd>←</kbd> Prev</span>
+      <span><kbd>T</kbd> Transition</span>
+      <span><kbd>S</kbd> Notes</span>
+      <span><kbd>F</kbd> Fullscreen</span>
+    </div>
+    <button class="fs-btn" id="btnFs" title="Fullscreen (F)">⛶</button>
+  </div>
+
+</div><!-- /presentation -->
+
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════
+     SPEAKER NOTES
+══════════════════════════════════════════ -->
+<script type="application/json" id="speakerNotes">
+[
+  "Introduce yourself and the topic. React and Vue are the two most popular UI frameworks for the web — today we'll break down what makes each unique, where they excel, and how to pick the right one for your project.",
+  "Set the stage: React was born at Facebook/Meta, Vue was a solo project by Evan You. Both are component-based and use a virtual DOM, but they take very different philosophical approaches to developer experience.",
+  "React's JSX blends JS and HTML — powerful but unfamiliar at first. Hooks (useState, useEffect) replaced class components in React 16.8. The ecosystem is vast but you have to assemble your own stack.",
+  "Vue's Single File Components separate template, script, and style cleanly. The Composition API (Vue 3) mirrors React hooks conceptually but with a more explicit reactivity system. Pinia and Vue Router ship officially.",
+  "Walk through the table row by row. Key talking point: both have excellent TypeScript support, both have SSR meta-frameworks. The main divergence is ecosystem size, learning curve, and reactivity model.",
+  "Emphasize: there is no universally 'better' framework. Context is everything — team skills, hiring pipeline, project scale, and time-to-market should all factor into the decision.",
+  "Open the floor for questions. Suggested resources: react.dev, vuejs.org, and the State of JS survey for current trends and community sentiment."
+]
+</script>
+
+<!-- ══════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════ -->
+<script>
+(function () {
+  'use strict';
+
+  const container     = document.getElementById('slideContainer');
+  const slides        = Array.from(container.querySelectorAll('.slide'));
+  const TOTAL         = slides.length;
+  const progressFill  = document.getElementById('progressFill');
+  const btnPrev       = document.getElementById('btnPrev');
+  const btnNext       = document.getElementById('btnNext');
+  const cntCur        = document.getElementById('cntCur');
+  const cntTot        = document.getElementById('cntTot');
+  const indicators    = document.getElementById('indicators');
+  const transLabel    = document.getElementById('transLabel');
+  const btnFs         = document.getElementById('btnFs');
+  const toastEl       = document.getElementById('toast');
+
+  let currentIndex = 0;
+  let isAnimating  = false;
+  let isComposing  = false;
+  let transitionType = 'slide';
+  const DURATION = 520;
+  const TRANSITION_TYPES = ['slide', 'fade', 'zoom', 'flip'];
+
+  // ── helpers ──────────────────────────────────────────────────────
+  const nextFrame = () => new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  function waitFor(el) {
+    return new Promise(resolve => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        el.removeEventListener('transitionend', finish);
+        clearTimeout(tid);
+        resolve();
+      };
+      const tid = setTimeout(finish, DURATION + 80);
+      el.addEventListener('transitionend', finish);
+    });
+  }
+
+  // ── fragment management ──────────────────────────────────────────
+  function getFragments(slide) {
+    return Array.from(slide.querySelectorAll('[data-step]'))
+      .sort((a, b) => +a.dataset.step - +b.dataset.step);
+  }
+  function resetFragments(slide) {
+    getFragments(slide).forEach(f => f.classList.remove('revealed'));
+  }
+
+  // ── transition CSS ───────────────────────────────────────────────
+  function applyTransitionCSS() {
+    const dur = DURATION / 1000, ease = 'cubic-bezier(0.4,0,0.2,1)';
+    const rules = {
+      slide: `opacity ${dur}s ${ease}, transform ${dur}s ${ease}`,
+      fade:  `opacity ${dur}s ${ease}`,
+      zoom:  `opacity ${dur}s ${ease}, transform ${dur}s ${ease}`,
+      flip:  `opacity ${dur}s ${ease}, transform ${dur}s ${ease}`,
+    };
+    slides.forEach(s => { s.style.transition = rules[transitionType]; });
+    container.style.perspective = transitionType === 'flip' ? '1200px' : '';
+  }
+
+  function getEnterTransform(dir) {
+    const d = dir === 'next' ? 1 : -1;
+    switch (transitionType) {
+      case 'slide': return `translateX(${d * 60}px) scale(0.98)`;
+      case 'zoom':  return `scale(${dir === 'next' ? 0.82 : 1.18})`;
+      case 'flip':  return `rotateY(${d * 80}deg)`;
+      default:      return 'none';
+    }
+  }
+  function getExitTransform(dir) {
+    const d = dir === 'next' ? -1 : 1;
+    switch (transitionType) {
+      case 'slide': return `translateX(${d * 60}px) scale(0.98)`;
+      case 'zoom':  return `scale(${dir === 'next' ? 1.18 : 0.82})`;
+      case 'flip':  return `rotateY(${d * -80}deg)`;
+      default:      return 'none';
+    }
+  }
+
+  // ── UI update ─────────────────────────────────────────────────────
+  function updateUI(idx) {
+    if (idx === undefined) idx = currentIndex;
+    cntCur.textContent = idx + 1;
+    progressFill.style.width = `${(idx + 1) / TOTAL * 100}%`;
+    btnPrev.disabled = idx === 0;
+    btnNext.disabled = idx === TOTAL - 1;
+    Array.from(indicators.children).forEach((dot, i) => dot.classList.toggle('active', i === idx));
+  }
+
+  // ── URL hash ──────────────────────────────────────────────────────
+  function syncHash() {
+    history.pushState({ slideIndex: currentIndex }, '', `#slide-${currentIndex + 1}`);
+  }
+
+  // ── go to slide ───────────────────────────────────────────────────
+  async function goTo(nextIdx, direction) {
+    if (isAnimating || nextIdx === currentIndex) return;
+    if (nextIdx < 0 || nextIdx >= TOTAL) return;
+    isAnimating = true;
+    const dir = direction || (nextIdx > currentIndex ? 'next' : 'prev');
+    const oldSlide = slides[currentIndex];
+    const newSlide = slides[nextIdx];
+
+    updateUI(nextIdx);
+
+    try {
+      oldSlide.style.willChange = 'transform, opacity';
+      newSlide.style.willChange = 'transform, opacity';
+      newSlide.style.transition = 'none';
+      newSlide.style.transform  = getEnterTransform(dir);
+      newSlide.style.opacity    = '0';
+      newSlide.style.zIndex     = '8';
+
+      await nextFrame();
+
+      applyTransitionCSS();
+      oldSlide.classList.add('is-exit');
+      oldSlide.classList.remove('is-active');
+      oldSlide.style.transform = getExitTransform(dir);
+      oldSlide.style.opacity   = '0';
+
+      newSlide.style.transform = 'translateX(0) scale(1) rotateY(0deg)';
+      newSlide.style.opacity   = '1';
+      newSlide.classList.add('is-active');
+
+      await waitFor(oldSlide);
+
+      [oldSlide, newSlide].forEach(s => {
+        s.style.transform = '';
+        s.style.opacity   = '';
+        s.style.zIndex    = '';
+        s.style.willChange = 'auto';
+        s.style.transition = '';
+      });
+      oldSlide.classList.remove('is-exit');
+
+      resetFragments(newSlide);
+      currentIndex = nextIdx;
+      syncHash();
+    } finally {
+      isAnimating = false;
+    }
+  }
+
+  // ── advance / retreat ─────────────────────────────────────────────
+  function advance() {
+    const frags = getFragments(slides[currentIndex]);
+    const next = frags.find(f => !f.classList.contains('revealed'));
+    if (next) { next.classList.add('revealed'); return; }
+    if (currentIndex < TOTAL - 1) goTo(currentIndex + 1, 'next');
+  }
+  function retreat() {
+    const frags = getFragments(slides[currentIndex]);
+    const revealed = frags.filter(f => f.classList.contains('revealed'));
+    if (revealed.length) { revealed[revealed.length - 1].classList.remove('revealed'); return; }
+    if (currentIndex > 0) goTo(currentIndex - 1, 'prev');
+  }
+
+  // ── cycle transition ──────────────────────────────────────────────
+  function cycleTransition() {
+    const i = TRANSITION_TYPES.indexOf(transitionType);
+    transitionType = TRANSITION_TYPES[(i + 1) % TRANSITION_TYPES.length];
+    transLabel.textContent = transitionType;
+    showToast(`Transition: ${transitionType}`);
+  }
+
+  // ── toast ─────────────────────────────────────────────────────────
+  let toastTimer;
+  function showToast(msg) {
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2000);
+  }
+
+  // ── fullscreen ────────────────────────────────────────────────────
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(() => {});
+    } else {
+      document.exitFullscreen().catch(() => {});
+    }
+  }
+
+  // ── speaker notes ─────────────────────────────────────────────────
+  const notesData = JSON.parse(document.getElementById('speakerNotes').textContent);
+
+  function openSpeakerNotes() {
+    const note = notesData[currentIndex] || '(No notes for this slide)';
+    const w = window.open('', 'speakerNotes', 'width=560,height=360,resizable=yes');
+    if (!w) { showToast('Popup blocked'); return; }
+    w.document.open();
+    w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+      <title>Speaker Notes — Slide ${currentIndex + 1}</title>
+      <style>
+        body { margin:0; background:#111; color:#F0EAD6; font-family:sans-serif; padding:24px; }
+        h3 { color:#C6A55C; margin-bottom:12px; }
+        p  { line-height:1.7; font-size:15px; color:rgba(240,234,214,0.85); }
+        .timer { font-size:28px; font-weight:700; color:#E8C97A; margin-top:20px; font-variant-numeric: tabular-nums; }
+      </style>
+    </head><body>
+      <h3>Slide ${currentIndex + 1} / ${TOTAL}</h3>
+      <p>${note}</p>
+      <div class="timer" id="t">0:00</div>
+      <script>
+        let s=0, iv=setInterval(()=>{ s++;
+          document.getElementById('t').textContent=
+            Math.floor(s/60)+':'+(s%60+'').padStart(2,'0');
+        },1000);
+      <\/script>
+    </body></html>`);
+    w.document.close();
+  }
+
+  // ── keyboard ──────────────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (isComposing) return;
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+    switch (e.key) {
+      case 'ArrowRight': case 'PageDown': advance();              e.preventDefault(); break;
+      case 'ArrowLeft':  case 'PageUp':  retreat();              e.preventDefault(); break;
+      case ' ':                          advance();              e.preventDefault(); break;
+      case 'Home':                       goTo(0);                e.preventDefault(); break;
+      case 'End':                        goTo(TOTAL - 1);        e.preventDefault(); break;
+      case 't': case 'T':                cycleTransition();       break;
+      case 'f': case 'F':                toggleFullscreen();      break;
+      case 's': case 'S':                openSpeakerNotes();      break;
+    }
+  });
+  document.addEventListener('compositionstart', () => { isComposing = true; });
+  document.addEventListener('compositionend',   () => { isComposing = false; });
+
+  // ── touch swipe ───────────────────────────────────────────────────
+  let touchStartX = 0, touchStartY = 0;
+  container.addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+  }, { passive: true });
+  container.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = e.changedTouches[0].clientY - touchStartY;
+    if (Math.abs(dx) < 50 || Math.abs(dy) / Math.abs(dx) > 0.6) return;
+    dx < 0 ? advance() : retreat();
+  }, { passive: true });
+
+  // ── button clicks ─────────────────────────────────────────────────
+  btnPrev.addEventListener('click', retreat);
+  btnNext.addEventListener('click', advance);
+  btnFs.addEventListener('click', toggleFullscreen);
+  transLabel.addEventListener('click', cycleTransition);
+
+  // ── hash change ───────────────────────────────────────────────────
+  window.addEventListener('hashchange', () => {
+    const m = location.hash.match(/slide-(\d+)/);
+    if (m) {
+      const i = +m[1] - 1;
+      if (!isNaN(i) && i !== currentIndex && i >= 0 && i < TOTAL) goTo(i);
+    }
+  });
+
+  // ── init ──────────────────────────────────────────────────────────
+  function init() {
+    cntTot.textContent = TOTAL;
+
+    slides.forEach((_, i) => {
+      const dot = document.createElement('button');
+      dot.className = 'dot' + (i === 0 ? ' active' : '');
+      dot.setAttribute('aria-label', `Slide ${i + 1}`);
+      dot.addEventListener('click', () => goTo(i));
+      indicators.appendChild(dot);
+    });
+
+    // restore from URL hash
+    const match = location.hash.match(/slide-(\d+)/);
+    if (match) {
+      const idx = +match[1] - 1;
+      if (idx > 0 && idx < TOTAL) {
+        slides[0].classList.remove('is-active');
+        slides[idx].classList.add('is-active');
+        currentIndex = idx;
+      }
+    }
+
+    updateUI();
+    applyTransitionCSS();
+  }
+
+  init();
+})();
+</script>
+
+</body>
+</html>

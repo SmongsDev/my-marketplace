@@ -1,0 +1,43 @@
+{
+  "eval_id": 2,
+  "eval_name": "react-vs-vue",
+  "prompt": "React vs Vue comparison presentation in English \u2014 7 slides: title, overview, React pros/cons, Vue pros/cons, side-by-side comparison table, when to choose which, closing Q&A. Include code examples where relevant.",
+  "assertions": [
+    {
+      "id": "single-file",
+      "description": "Output is a single .html file with no external JS/CSS file references"
+    },
+    {
+      "id": "slide-count",
+      "description": "Has approximately 7 slides"
+    },
+    {
+      "id": "has-code-blocks",
+      "description": "At least one <pre><code> block for code examples"
+    },
+    {
+      "id": "has-fragments",
+      "description": "Fragment system (data-step) used"
+    },
+    {
+      "id": "has-navigation-js",
+      "description": "Keyboard navigation present"
+    },
+    {
+      "id": "has-speaker-notes",
+      "description": "Speaker notes JSON present"
+    },
+    {
+      "id": "animation-lock",
+      "description": "isAnimating flag present"
+    },
+    {
+      "id": "touch-swipe",
+      "description": "Touch swipe support"
+    },
+    {
+      "id": "hash-sync",
+      "description": "URL hash synchronization"
+    }
+  ]
+}
