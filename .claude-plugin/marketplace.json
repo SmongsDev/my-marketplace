@@ -7,7 +7,7 @@
     "plugins": [
         {
             "name": "vailla-ppt",
-            "source": "./plugins/vailla-presentation-plugin",
+            "source": "./plugins/vanilla-presentation-plugin",
             "description": "PPT 생성 플러그인",
             "version": "1.0.0",
             "author": {
